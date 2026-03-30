@@ -1,0 +1,719 @@
+/* ============================================
+   ESTILOS CORPORATIVOS ProAHUV
+   Color Primario: #2c4370 (Azul Corporativo)
+   Color Secundario: #ffffff (Blanco)
+   ============================================ */
+
+:root {
+    --corp-primary: #2c4370;
+    --corp-primary-dark: #1e2f4d;
+    --corp-primary-light: #3d5a8a;
+    --corp-primary-hover: #243859;
+    --corp-secondary: #ffffff;
+    --corp-text-light: #ffffff;
+    --corp-text-dark: #2c4370;
+    --corp-border: #dee2e6;
+    --corp-shadow: rgba(44, 67, 112, 0.15);
+}
+
+/* Fondo de la aplicación */
+body:not(.sidebar-mini-md):not(.sidebar-mini-xs):not(.layout-top-nav) .content-wrapper, 
+body:not(.layout-fixed) .main-footer {
+    background: url('/images/huv2.jpg') no-repeat center center fixed;
+    background-size: cover;
+}
+
+/* Establecer fondo para todo el sitio */
+body, .login-page, .register-page {
+    background: url('/images/huv2.jpg') no-repeat center center fixed !important;
+    background-size: cover !important;
+}
+
+/* ============================================
+   SIDEBAR - Color Corporativo
+   ============================================ */
+.main-sidebar {
+    background: linear-gradient(180deg, var(--corp-primary) 0%, var(--corp-primary-dark) 100%) !important;
+    box-shadow: 2px 0 15px var(--corp-shadow);
+    position: fixed;
+    height: 100%;
+    overflow-y: auto;
+}
+
+.main-sidebar, 
+.main-sidebar::before {
+    background: linear-gradient(180deg, var(--corp-primary) 0%, var(--corp-primary-dark) 100%) !important;
+}
+
+/* Brand/Logo en el sidebar */
+.brand-link {
+    background-color: var(--corp-primary-dark) !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+.brand-link .brand-image {
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.brand-link .brand-text {
+    color: var(--corp-secondary) !important;
+    font-weight: 600;
+}
+
+/* Navegación del Sidebar */
+.sidebar-dark-primary .nav-sidebar > .nav-item > .nav-link.active,
+.sidebar-dark-primary .nav-sidebar > .nav-item.menu-open > .nav-link,
+[class*="sidebar-dark"] .nav-sidebar > .nav-item.menu-open > .nav-link {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    color: var(--corp-secondary) !important;
+}
+
+.sidebar-dark-primary .nav-sidebar .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.sidebar-dark-primary .nav-sidebar .nav-link:hover {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--corp-secondary) !important;
+}
+
+/* Sidebar treeview (submenús) */
+.nav-treeview > .nav-item > .nav-link {
+    color: rgba(255, 255, 255, 0.75) !important;
+}
+
+.nav-treeview > .nav-item > .nav-link:hover,
+.nav-treeview > .nav-item > .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    color: var(--corp-secondary) !important;
+}
+
+/* Sidebar header */
+.nav-sidebar .nav-header {
+    color: rgba(255, 255, 255, 0.5) !important;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+/* User panel en sidebar */
+.user-panel .info a {
+    color: var(--corp-secondary) !important;
+}
+
+/* ============================================
+   NAVBAR SUPERIOR - Color Corporativo
+   ============================================ */
+.main-header {
+    background-color: var(--corp-primary) !important;
+    border-bottom: none !important;
+    box-shadow: 0 2px 15px var(--corp-shadow);
+    position: fixed;
+    width: 100%;
+    z-index: 1000;
+}
+
+.main-header.navbar-white,
+.main-header.navbar-light {
+    background-color: var(--corp-primary) !important;
+}
+
+.main-header .navbar {
+    background-color: var(--corp-primary) !important;
+    background-image: none !important;
+}
+
+/* Links y botones del navbar */
+.main-header .navbar-nav .nav-link {
+    color: rgba(255, 255, 255, 0.85) !important;
+}
+
+.main-header .navbar-nav .nav-link:hover,
+.main-header .navbar-nav .nav-link:focus {
+    color: var(--corp-secondary) !important;
+}
+
+/* Botón hamburguesa del sidebar */
+.main-header .nav-link[data-widget="pushmenu"],
+.main-header [data-widget="pushmenu"] {
+    color: var(--corp-secondary) !important;
+}
+
+/* Search box en navbar */
+.main-header .form-control-navbar {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--corp-secondary) !important;
+}
+
+.main-header .form-control-navbar::placeholder {
+    color: rgba(255, 255, 255, 0.6) !important;
+}
+
+.main-header .input-group-text {
+    background-color: rgba(255, 255, 255, 0.15) !important;
+    border-color: rgba(255, 255, 255, 0.2) !important;
+    color: var(--corp-secondary) !important;
+}
+
+/* ============================================
+   CONTENIDO PRINCIPAL
+   ============================================ */
+.content-wrapper {
+    background-color: transparent !important;
+    padding-left: 0 !important;
+    margin-left: 250px;
+    transition: margin-left 0.3s ease;
+    width: calc(100% - 250px);
+}
+
+body.sidebar-collapse .content-wrapper {
+    margin-left: 4.6rem;
+    width: calc(100% - 4.6rem);
+}
+
+.content-wrapper .content {
+    background-color: transparent;
+    padding: 15px 20px;
+}
+
+.container-fluid {
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+/* Content Header */
+.content-header h1 {
+    color: var(--corp-primary);
+    font-weight: 600;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+    background-color: transparent;
+}
+
+.breadcrumb-item a {
+    color: var(--corp-primary);
+}
+
+.breadcrumb-item.active {
+    color: var(--corp-primary-light);
+}
+
+/* ============================================
+   CARDS
+   ============================================ */
+.card {
+    background-color: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 5px 20px var(--corp-shadow);
+    border: none;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(44, 67, 112, 0.1);
+}
+
+.card-primary:not(.card-outline) > .card-header {
+    background-color: var(--corp-primary);
+    border-color: var(--corp-primary);
+}
+
+.card-primary.card-outline {
+    border-top: 3px solid var(--corp-primary);
+}
+
+.card-info.card-outline {
+    border-top: 3px solid var(--corp-primary-light);
+}
+
+.card-success.card-outline {
+    border-top: 3px solid #28a745;
+}
+
+/* Card titles */
+.card-title {
+    font-weight: 600;
+    color: var(--corp-primary);
+}
+
+.card-primary:not(.card-outline) .card-title {
+    color: var(--corp-secondary);
+}
+
+/* ============================================
+   BOTONES - Colores Corporativos
+   ============================================ */
+.btn-primary {
+    background-color: var(--corp-primary) !important;
+    border-color: var(--corp-primary) !important;
+    color: var(--corp-secondary) !important;
+}
+
+.btn-primary:hover,
+.btn-primary:focus,
+.btn-primary:active {
+    background-color: var(--corp-primary-hover) !important;
+    border-color: var(--corp-primary-hover) !important;
+    color: var(--corp-secondary) !important;
+}
+
+.btn-outline-primary {
+    color: var(--corp-primary) !important;
+    border-color: var(--corp-primary) !important;
+}
+
+.btn-outline-primary:hover,
+.btn-outline-primary:focus {
+    background-color: var(--corp-primary) !important;
+    border-color: var(--corp-primary) !important;
+    color: var(--corp-secondary) !important;
+}
+
+/* Botón Info como variante del corporativo */
+.btn-info {
+    background-color: var(--corp-primary-light) !important;
+    border-color: var(--corp-primary-light) !important;
+}
+
+.btn-info:hover {
+    background-color: var(--corp-primary) !important;
+    border-color: var(--corp-primary) !important;
+}
+
+/* ============================================
+   FORMULARIOS
+   ============================================ */
+.form-control:focus {
+    border-color: var(--corp-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(44, 67, 112, 0.25) !important;
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--corp-primary);
+    border-color: var(--corp-primary);
+}
+
+.custom-checkbox .custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--corp-primary);
+    border-color: var(--corp-primary);
+}
+
+/* Select2 */
+.select2-container--default .select2-selection--single:focus,
+.select2-container--default.select2-container--focus .select2-selection--single {
+    border-color: var(--corp-primary);
+}
+
+.select2-container--default .select2-results__option--highlighted[aria-selected] {
+    background-color: var(--corp-primary);
+}
+
+/* ============================================
+   TABLAS Y DATATABLES
+   ============================================ */
+.table thead th {
+    background-color: var(--corp-primary);
+    color: var(--corp-secondary);
+    border-color: var(--corp-primary);
+    font-weight: 600;
+}
+
+.table-hover tbody tr:hover {
+    background-color: rgba(44, 67, 112, 0.05) !important;
+}
+
+/* DataTables pagination */
+.dataTables_wrapper .dataTables_paginate .paginate_button.current,
+.dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+    background: var(--corp-primary) !important;
+    color: var(--corp-secondary) !important;
+    border-color: var(--corp-primary) !important;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
+    background: rgba(44, 67, 112, 0.1) !important;
+    color: var(--corp-primary) !important;
+    border-color: var(--corp-primary) !important;
+}
+
+.page-item.active .page-link {
+    background-color: var(--corp-primary);
+    border-color: var(--corp-primary);
+}
+
+.page-link {
+    color: var(--corp-primary);
+}
+
+.page-link:hover {
+    color: var(--corp-primary-dark);
+    background-color: rgba(44, 67, 112, 0.1);
+}
+
+/* ============================================
+   BADGES
+   ============================================ */
+.badge-primary {
+    background-color: var(--corp-primary);
+}
+
+.badge-info {
+    background-color: var(--corp-primary-light);
+}
+
+/* ============================================
+   ALERTS
+   ============================================ */
+.alert-primary {
+    background-color: rgba(44, 67, 112, 0.15);
+    border-color: var(--corp-primary);
+    color: var(--corp-primary);
+}
+
+.alert-info {
+    background-color: rgba(61, 90, 138, 0.15);
+    border-color: var(--corp-primary-light);
+    color: var(--corp-primary);
+}
+
+/* ============================================
+   PROGRESS BARS
+   ============================================ */
+.progress-bar,
+.bg-primary {
+    background-color: var(--corp-primary) !important;
+}
+
+.bg-info {
+    background-color: var(--corp-primary-light) !important;
+}
+
+/* ============================================
+   LINKS
+   ============================================ */
+a {
+    color: var(--corp-primary);
+}
+
+a:hover {
+    color: var(--corp-primary-dark);
+}
+
+/* ============================================
+   LOGIN/REGISTRO
+   ============================================ */
+.login-box .card, 
+.register-box .card {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px var(--corp-shadow);
+}
+
+.login-logo a, 
+.register-logo a {
+    color: var(--corp-secondary) !important;
+    font-weight: bold;
+    text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.5);
+}
+
+.login-box-msg, 
+.register-box-msg {
+    font-weight: 500;
+    color: var(--corp-primary);
+}
+
+.login-card-body .btn-primary,
+.register-card-body .btn-primary {
+    background-color: var(--corp-primary);
+    border-color: var(--corp-primary);
+}
+
+/* Card outline primary para login */
+.card-outline.card-primary {
+    border-top: 3px solid var(--corp-primary);
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.main-footer {
+    background-color: var(--corp-secondary);
+    border-top: 2px solid var(--corp-primary);
+    color: var(--corp-primary);
+}
+
+/* ============================================
+   PRELOADER
+   ============================================ */
+.preloader {
+    background-color: var(--corp-primary) !important;
+}
+
+/* ============================================
+   MODALS
+   ============================================ */
+.modal-header {
+    background-color: var(--corp-primary);
+    color: var(--corp-secondary);
+    border-bottom: none;
+}
+
+.modal-header .close {
+    color: var(--corp-secondary);
+    opacity: 0.8;
+}
+
+.modal-header .close:hover {
+    color: var(--corp-secondary);
+    opacity: 1;
+}
+
+.modal-title {
+    color: var(--corp-secondary);
+}
+
+/* ============================================
+   DROPDOWN MENUS
+   ============================================ */
+.dropdown-item:hover,
+.dropdown-item:focus {
+    background-color: rgba(44, 67, 112, 0.1);
+    color: var(--corp-primary);
+}
+
+.dropdown-item.active,
+.dropdown-item:active {
+    background-color: var(--corp-primary);
+    color: var(--corp-secondary);
+}
+
+/* ============================================
+   TABS
+   ============================================ */
+.nav-tabs .nav-link.active {
+    color: var(--corp-primary);
+    border-bottom: 2px solid var(--corp-primary);
+}
+
+.nav-tabs .nav-link:hover {
+    color: var(--corp-primary);
+}
+
+.nav-pills .nav-link.active {
+    background-color: var(--corp-primary);
+}
+
+/* ============================================
+   SWEETALERT2
+   ============================================ */
+.swal2-confirm.swal2-styled {
+    background-color: var(--corp-primary) !important;
+}
+
+.swal2-confirm.swal2-styled:hover {
+    background-color: var(--corp-primary-hover) !important;
+}
+
+/* ============================================
+   WIZARD STEPS
+   ============================================ */
+.step-indicator.active .step-circle,
+.step-indicator.completed .step-circle {
+    background-color: var(--corp-primary);
+    color: var(--corp-secondary);
+}
+
+.progress-bar.bg-primary {
+    background-color: var(--corp-primary) !important;
+}
+
+/* ============================================
+   SCROLLBARS
+   ============================================ */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--corp-primary-light);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--corp-primary);
+}
+
+/* Efecto de transición al pasar el mouse por los ítems del menú */
+.nav-sidebar .nav-item > .nav-link {
+    transition: all 0.3s ease;
+}
+
+.nav-sidebar .nav-item:hover > .nav-link {
+    background-color: rgba(255, 255, 255, 0.1);
+    transform: translateX(5px);
+}
+
+/* Estilos para DataTables */
+.dataTables_wrapper {
+    width: 100%;
+    overflow-x: auto; /* Permitir scroll horizontal en pantallas pequeñas */
+}
+
+.dataTables_wrapper .dt-buttons {
+    margin-bottom: 15px;
+    display: inline-block;
+    float: left;
+}
+
+.dataTables_wrapper .dt-buttons .btn {
+    margin-right: 5px;
+    border-radius: 4px !important;
+    padding: .375rem .75rem;
+}
+
+.dataTables_wrapper .dataTables_filter {
+    float: right;
+    text-align: right;
+    margin-bottom: 15px;
+}
+
+.dataTables_wrapper .dataTables_filter input {
+    border-radius: 4px;
+    border: 1px solid #ced4da;
+    padding: .375rem .75rem;
+    margin-left: 5px;
+}
+
+/* Estilos para paginación */
+.dataTables_wrapper .dataTables_paginate {
+    padding-top: 15px;
+    float: right;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button {
+    padding: 5px 10px;
+    margin: 0 3px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button.current {
+    background-color: var(--corp-primary);
+    color: var(--corp-secondary) !important;
+    border: 1px solid var(--corp-primary);
+}
+
+.dataTables_wrapper .dataTables_paginate .paginate_button:hover:not(.current) {
+    background-color: rgba(44, 67, 112, 0.1);
+    color: var(--corp-primary) !important;
+    border-color: var(--corp-primary);
+}
+
+.dataTables_wrapper .dataTables_length {
+    float: left;
+    margin-right: 20px;
+}
+
+.dataTables_wrapper .dataTables_info {
+    clear: both;
+    float: left;
+    padding-top: 15px;
+}
+
+table.dataTable {
+    width: 100% !important;
+    margin-bottom: 15px;
+}
+
+table.dataTable thead th {
+    position: relative;
+    background-image: none !important;
+    padding: 10px;
+}
+
+table.dataTable thead th.sorting:after,
+table.dataTable thead th.sorting_asc:after,
+table.dataTable thead th.sorting_desc:after {
+    position: absolute;
+    right: 8px;
+    display: block;
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    opacity: 0.5;
+}
+
+table.dataTable thead th.sorting:after {
+    content: "\f0dc";
+    opacity: 0.2;
+}
+
+table.dataTable thead th.sorting_asc:after {
+    content: "\f0de";
+}
+
+table.dataTable thead th.sorting_desc:after {
+    content: "\f0dd";
+}
+
+/* Ajuste para pantallas pequeñas */
+@media (max-width: 768px) {
+    .content-wrapper {
+        margin-left: 0;
+        width: 100%;
+    }
+    
+    .dataTables_wrapper .dt-buttons,
+    .dataTables_wrapper .dataTables_filter,
+    .dataTables_wrapper .dataTables_length,
+    .dataTables_wrapper .dataTables_info,
+    .dataTables_wrapper .dataTables_paginate {
+        text-align: center;
+        float: none;
+        display: block;
+        margin: 10px auto;
+    }
+}
+
+/* Efectos hover en la tabla */
+table.dataTable tbody tr:hover {
+    background-color: rgba(44, 67, 112, 0.05) !important;
+    transition: background-color 0.3s;
+}
+
+/* Estilos para los botones de acción */
+.btn-group .btn {
+    margin-right: 3px;
+    box-shadow: none !important;
+    transform: scale(1);
+    transition: transform 0.2s;
+}
+
+.btn-group .btn:hover {
+    transform: scale(1.05);
+}
+
+/* Animaciones para notificaciones */
+.alert-success {
+    animation: fadeInDown 0.5s;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+} 

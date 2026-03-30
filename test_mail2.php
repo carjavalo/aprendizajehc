@@ -1,0 +1,1 @@
+<?php require 'vendor/autoload.php'; \ = require_once 'bootstrap/app.php'; \ = \->make(Illuminate\Contracts\Console\Kernel::class); \->bootstrap(); try { \Illuminate\Support\Facades\Mail::raw('Prueba', function (\) { \->to('test@example.com')->subject('Prueba'); }); echo 'OK'; } catch(\Exception \) { echo \->getMessage(); }

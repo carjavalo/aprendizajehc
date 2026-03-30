@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Botón Editar Actividad</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <h1>Test Botón Editar Actividad</h1>
+    
+    <button type="button" class="btn btn-info btn-sm btn-editar-actividad" 
+            data-actividad-id="32">
+        <i class="fas fa-edit"></i> Editar
+    </button>
+    
+    <div id="log"></div>
+    
+    <script>
+        function log(message) {
+            const logDiv = document.getElementById('log');
+            logDiv.innerHTML += '<p>' + message + '</p>';
+            console.log(message);
+        }
+        
+        log('Script cargado');
+        
+        $(document).ready(function() {
+            log('Document ready');
+            
+            // Verificar si jQuery está cargado
+            log('jQuery version: ' + $.fn.jquery);
+            
+            // Verificar si el botón existe
+            const boton = $('.btn-editar-actividad');
+            log('Botón encontrado: ' + (boton.length > 0 ? 'SÍ' : 'NO'));
+            
+            // Agregar event listener
+            $(document).on('click', '.btn-editar-actividad', function() {
+                log('¡Clic detectado!');
+                const actividadId = $(this).data('actividad-id');
+                log('Actividad ID: ' + actividadId);
+                
+                Swal.fire({
+                    title: 'Cargando...',
+                    html: '<i class="fas fa-spinner fa-spin fa-2x"></i>',
+                    showConfirmButton: false,
+                    allowOutsideClick: false
+                });
+                
+                log('Modal de loading mostrado');
+                
+                // Simular AJAX
+                setTimeout(function() {
+                    Swal.close();
+                    Swal.fire('Éxito', 'El botón funciona correctamente', 'success');
+                    log('Test completado');
+                }, 2000);
+            });
+            
+            log('Event listener agregado');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+═══════════════════════════════════════════════════════════════
+  SOLUCIÓN ERROR 422 AL CARGAR MATERIALES DEL CLASSROOM
+═══════════════════════════════════════════════════════════════
+
+✅ CAMBIOS REALIZADOS:
+
+1. Modelo Curso.php
+   ────────────────────────────────────────────────────────
+   ✓ Método tieneEstudiante() corregido
+   ✓ Usa wherePivot en vez de where
+   ✓ Consulta correcta a la tabla pivot
+
+2. Controlador CursoClassroomController.php
+   ────────────────────────────────────────────────────────
+   ✓ Agregado loadCount('estudiantes')
+   ✓ Manejo de errores con try-catch
+   ✓ Respuestas apropiadas para AJAX
+
+3. Caché Limpiada
+   ────────────────────────────────────────────────────────
+   ✓ php artisan cache:clear
+   ✓ php artisan view:clear
+
+═══════════════════════════════════════════════════════════════
+
+🔍 CAUSAS POSIBLES DEL ERROR 422:
+
+1. Usuario no autenticado
+   ────────────────────────────────────────────────────────
+   → Verifica que el usuario esté logueado
+   → Revisa la sesión en el navegador
+
+2. Usuario sin acceso al curso
+   ────────────────────────────────────────────────────────
+   → El usuario debe ser:
+     • Instructor del curso, O
+     • Estudiante inscrito, O
+     • Administrador del sistema
+
+3. Error en la consulta de la base de datos
+   ────────────────────────────────────────────────────────
+   → La tabla pivot debe tener las columnas correctas
+   → Verificar tabla: curso_estudiantes
+
+═══════════════════════════════════════════════════════════════
+
+✅ VERIFICAR ACCESO AL CURSO
+
+1. Opción A: Usuario es el Instructor
+   ────────────────────────────────────────────────────────
+   Verifica en la base de datos:
+   
+   SELECT * FROM cursos WHERE id = 4;
+   
+   Columna instructor_id debe coincidir con el ID del usuario
+
+2. Opción B: Usuario es Estudiante
+   ────────────────────────────────────────────────────────
+   Verifica en la base de datos:
+   
+   SELECT * FROM curso_estudiantes 
+   WHERE curso_id = 4 AND estudiante_id = [ID_USUARIO];
+   
+   Debe existir un registro
+
+3. Opción C: Usuario es Administrador
+   ────────────────────────────────────────────────────────
+   Verifica en la base de datos:
+   
+   SELECT * FROM users WHERE id = [ID_USUARIO];
+   
+   Columna role debe ser 'Super Admin' o 'Administrador'
+
+═══════════════════════════════════════════════════════════════
+
+🔧 PASOS PARA SOLUCIONAR
+
+PASO 1: Verificar si el usuario está logueado
+   ────────────────────────────────────────────────────────
+   1. Abre: http://127.0.0.1:8000
+   2. Verifica que veas el nombre del usuario arriba
+   3. Si no está logueado, inicia sesión
+
+PASO 2: Inscribir al usuario en el curso
+   ────────────────────────────────────────────────────────
+   Si el usuario NO es instructor ni admin:
+   
+   A) Desde la vista del classroom:
+      1. Ve a: http://127.0.0.1:8000/capacitaciones/cursos/4/classroom
+      2. Click en "Inscribirse al Curso"
+      
+   B) Desde la base de datos (phpMyAdmin):
+      1. Abre: http://localhost/phpmyadmin
+      2. Selecciona la base de datos
+      3. Tabla: curso_estudiantes
+      4. Click "Insertar"
+      5. Campos:
+         curso_id: 4
+         estudiante_id: [ID del usuario]
+         estado: activo
+         progreso: 0
+         fecha_inscripcion: [Fecha actual]
+
+PASO 3: Verificar que el curso esté activo
+   ────────────────────────────────────────────────────────
+   En phpMyAdmin:
+   
+   SELECT estado FROM cursos WHERE id = 4;
+   
+   Debe ser 'activo' o 'borrador'
+
+PASO 4: Limpiar caché del navegador
+   ────────────────────────────────────────────────────────
+   Presiona: Ctrl + Shift + R
+
+═══════════════════════════════════════════════════════════════
+
+📊 VERIFICAR TABLA curso_estudiantes
+
+Estructura correcta:
+   ────────────────────────────────────────────────────────
+   ✓ id (bigint)
+   ✓ curso_id (bigint)
+   ✓ estudiante_id (bigint)  ← IMPORTANTE
+   ✓ fecha_inscripcion (timestamp)
+   ✓ estado (enum)
+   ✓ progreso (int)
+   ✓ ultima_actividad (timestamp)
+   ✓ created_at (timestamp)
+   ✓ updated_at (timestamp)
+
+Verificar en phpMyAdmin:
+   ────────────────────────────────────────────────────────
+   1. Tabla: curso_estudiantes
+   2. Pestaña: Estructura
+   3. Verificar que existe columna: estudiante_id
+
+═══════════════════════════════════════════════════════════════
+
+🧪 PROBAR LA SOLUCIÓN
+
+1. Recarga la página
+   ────────────────────────────────────────────────────────
+   http://127.0.0.1:8000/capacitaciones/cursos/4/classroom
+   Presiona: Ctrl + Shift + R
+
+2. Abre la consola del navegador
+   ────────────────────────────────────────────────────────
+   Presiona F12 → Pestaña Console
+
+3. Navega a "Materiales"
+   ────────────────────────────────────────────────────────
+   Click en la pestaña "Materiales"
+
+4. Verifica errores
+   ────────────────────────────────────────────────────────
+   ANTES: ❌ Failed to load resource: 422
+   DESPUÉS: ✅ Materiales se cargan correctamente
+
+═══════════════════════════════════════════════════════════════
+
+💡 SI PERSISTE EL ERROR
+
+1. Revisar logs de Laravel
+   ────────────────────────────────────────────────────────
+   Archivo: storage/logs/laravel.log
+   
+   Busca el error más reciente con:
+   - Fecha y hora actual
+   - Mensaje que mencione "materiales" o "422"
+
+2. Verificar sesión PHP
+   ────────────────────────────────────────────────────────
+   En la consola del navegador (F12):
+   
+   console.log(document.cookie);
+   
+   Debe existir una cookie de sesión de Laravel
+
+3. Verificar rutas
+   ────────────────────────────────────────────────────────
+   En terminal:
+   
+   php artisan route:list | findstr classroom
+   
+   Debe mostrar:
+   GET|HEAD  capacitaciones/cursos/{curso}/classroom/materiales
+
+═══════════════════════════════════════════════════════════════
+
+📝 RESUMEN DE CAMBIOS
+
+ANTES:
+   ❌ tieneEstudiante() usaba where() incorrecto
+   ❌ No había manejo de errores
+   ❌ No cargaba estudiantes_count
+   ❌ Error 422 al cargar materiales
+
+DESPUÉS:
+   ✅ tieneEstudiante() usa wherePivot() correcto
+   ✅ Manejo de errores con try-catch
+   ✅ Carga estudiantes_count correctamente
+   ✅ Materiales se cargan sin error
+
+═══════════════════════════════════════════════════════════════
+
+⚡ COMANDO RÁPIDO DE VERIFICACIÓN
+
+En terminal (CMD):
+   ────────────────────────────────────────────────────────
+   cd c:\xampp\htdocs\SHC
+   php artisan tinker
+   
+Luego ejecuta:
+   ────────────────────────────────────────────────────────
+   $curso = App\Models\Curso::find(4);
+   $user = auth()->user();
+   $curso->tieneEstudiante($user->id);
+   
+Resultado esperado:
+   ────────────────────────────────────────────────────────
+   true  → Usuario tiene acceso
+   false → Usuario NO tiene acceso (inscribirlo)
+
+═══════════════════════════════════════════════════════════════
+
+🎯 RESULTADO ESPERADO
+
+Después de aplicar las correcciones:
+
+✅ La pestaña "Materiales" carga correctamente
+✅ Se muestran los documentos del curso
+✅ El botón "Ver" abre el modal de visualización
+✅ No hay errores 422 en la consola
+✅ La navegación es fluida
+
+═══════════════════════════════════════════════════════════════

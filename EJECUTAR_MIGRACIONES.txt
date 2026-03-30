@@ -1,0 +1,179 @@
+═══════════════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA CORREGIR ERROR 500 AL CREAR CURSOS
+═══════════════════════════════════════════════════════════════════════
+
+⚠️ PROBLEMA DETECTADO:
+   Error 500 (Internal Server Error) al intentar crear cursos
+   
+🔍 CAUSA:
+   Faltan columnas en la base de datos para almacenar:
+   - Datos de clases en línea (clase_en_linea, fecha_inicio, fecha_fin)
+   - Datos de quizzes (contenido_json)
+
+✅ SOLUCIÓN:
+   Ejecutar las migraciones pendientes
+
+═══════════════════════════════════════════════════════════════════════
+
+📋 PASOS PARA EJECUTAR:
+
+1. ABRE LA TERMINAL/CMD
+   ─────────────────────────────────────────────────────────
+   - Presiona: Windows + R
+   - Escribe: cmd
+   - Presiona Enter
+
+2. NAVEGA AL DIRECTORIO DEL PROYECTO
+   ─────────────────────────────────────────────────────────
+   Ejecuta:
+   
+   cd c:\xampp\htdocs\SHC
+
+3. EJECUTA LAS MIGRACIONES
+   ─────────────────────────────────────────────────────────
+   Ejecuta:
+   
+   php artisan migrate
+
+4. VERIFICA QUE SE EJECUTARON CORRECTAMENTE
+   ─────────────────────────────────────────────────────────
+   Deberías ver:
+   
+   ✓ 2025_10_31_000001_add_clase_en_linea_to_curso_materiales
+   ✓ 2025_10_31_000002_add_contenido_json_to_curso_actividades
+   
+   Migration successful!
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 CAMBIOS EN LA BASE DE DATOS:
+
+Tabla: curso_materiales
+   ✅ Nueva columna: fecha_inicio (datetime)
+   ✅ Nueva columna: fecha_fin (datetime)
+   ✅ Nuevo tipo: 'clase_en_linea' agregado al enum 'tipo'
+
+Tabla: curso_actividades
+   ✅ Nueva columna: contenido_json (json)
+      → Almacena preguntas, respuestas y configuración de quizzes
+
+═══════════════════════════════════════════════════════════════════════
+
+🔧 ARCHIVOS ACTUALIZADOS:
+
+Controlador:
+   ✅ app/Http/Controllers/CursoController.php
+      - processMaterials: Maneja meetUrl, meetStart, meetEnd
+      - processActivities: Maneja quizData
+
+Modelos:
+   ✅ app/Models/CursoMaterial.php
+      - fillable: fecha_inicio, fecha_fin
+      - casts: fecha_inicio, fecha_fin como datetime
+      - Soporte para tipo 'clase_en_linea'
+   
+   ✅ app/Models/CursoActividad.php
+      - fillable: contenido_json
+      - casts: contenido_json como array
+
+Migraciones:
+   ✅ 2025_10_31_000001_add_clase_en_linea_to_curso_materiales.php
+   ✅ 2025_10_31_000002_add_contenido_json_to_curso_actividades.php
+
+═══════════════════════════════════════════════════════════════════════
+
+⚠️ SI HAY ERRORES:
+
+Error: "Nothing to migrate"
+   → Las migraciones ya están ejecutadas
+   → El problema puede ser otro
+
+Error: "Table already exists"
+   → Las tablas ya existen
+   → Ejecuta: php artisan migrate:status
+
+Error: "Syntax error"
+   → Verifica que MySQL esté corriendo en XAMPP
+   → Verifica las credenciales en .env
+
+Error: "Connection refused"
+   → Inicia MySQL en XAMPP Control Panel
+   → Verifica que el puerto 3306 esté libre
+
+═══════════════════════════════════════════════════════════════════════
+
+🧪 PROBAR LA SOLUCIÓN:
+
+1. Ejecuta las migraciones (arriba)
+
+2. Ve a: http://127.0.0.1:8000/capacitaciones/cursos/create
+
+3. Crea un curso de prueba:
+   ✅ Agrega materiales (video, documento, clase en línea)
+   ✅ Agrega un quiz con preguntas
+   ✅ Click en "Crear Curso"
+
+4. SI FUNCIONA:
+   → Verás: "¡Curso creado exitosamente!"
+   → El curso aparecerá en la lista
+   → Error 500 resuelto ✓
+
+5. SI PERSISTE EL ERROR:
+   → Abre: storage/logs/laravel.log
+   → Busca el error más reciente
+   → Copia el mensaje de error completo
+   → Compártelo para más ayuda
+
+═══════════════════════════════════════════════════════════════════════
+
+💡 VERIFICACIÓN RÁPIDA:
+
+Para verificar que las columnas se agregaron correctamente:
+
+1. Abre phpMyAdmin: http://localhost/phpmyadmin
+
+2. Selecciona tu base de datos
+
+3. Tabla curso_materiales:
+   ✓ Debe tener: fecha_inicio (datetime)
+   ✓ Debe tener: fecha_fin (datetime)
+   ✓ Columna 'tipo' debe incluir: 'clase_en_linea'
+
+4. Tabla curso_actividades:
+   ✓ Debe tener: contenido_json (json/text)
+
+═══════════════════════════════════════════════════════════════════════
+
+📱 ACCESO DE ESTUDIANTES:
+
+Una vez creado el curso, los estudiantes podrán verlo en:
+http://127.0.0.1:8000/academico/cursos-disponibles
+
+Requisitos para que aparezca:
+✅ Curso debe estar en estado: 'activo'
+✅ Fecha de inicio debe ser <= hoy (o null)
+✅ Debe tener cupos disponibles (max_estudiantes)
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 RESUMEN:
+
+ANTES:
+❌ Error 500 al crear cursos
+❌ Faltan columnas en BD
+❌ No se pueden guardar clases en línea
+❌ No se pueden guardar quizzes
+
+DESPUÉS (tras ejecutar migraciones):
+✅ Cursos se crean correctamente
+✅ Clases en línea funcionan
+✅ Quizzes con preguntas se guardan
+✅ Estudiantes pueden ver cursos disponibles
+
+═══════════════════════════════════════════════════════════════════════
+
+COMANDO RÁPIDO (copia y pega en CMD):
+
+cd c:\xampp\htdocs\SHC && php artisan migrate
+
+═══════════════════════════════════════════════════════════════════════

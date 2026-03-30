@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CSRF Fix</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h1>🔧 VERIFICACIÓN DE CORRECCIÓN CSRF</h1>
+    
+    <h2>✅ CAMBIOS IMPLEMENTADOS:</h2>
+    <ul>
+        <li><strong>Meta tag CSRF agregado</strong> en master.blade.php</li>
+        <li><strong>@csrf agregado</strong> al formulario del modal</li>
+        <li><strong>$.ajaxSetup configurado</strong> para incluir token CSRF en todas las peticiones</li>
+        <li><strong>Método _method=PUT</strong> agregado para actualizaciones</li>
+        <li><strong>Manejo mejorado de errores</strong> en JavaScript</li>
+    </ul>
+    
+    <h2>🧪 PASOS PARA PROBAR:</h2>
+    <ol>
+        <li>Acceder a: <a href="http://127.0.0.1:8000/capacitaciones/areas" target="_blank">http://127.0.0.1:8000/capacitaciones/areas</a></li>
+        <li>Hacer clic en el botón "Editar" (ícono de lápiz) de cualquier área</li>
+        <li>Modificar la descripción o categoría</li>
+        <li>Hacer clic en "Actualizar"</li>
+        <li>Verificar que se muestre mensaje de éxito y no error de CSRF</li>
+    </ol>
+    
+    <h2>🔍 SI PERSISTE EL ERROR:</h2>
+    <ol>
+        <li><strong>Abrir herramientas de desarrollador (F12)</strong></li>
+        <li><strong>Ir a la pestaña "Console"</strong></li>
+        <li><strong>Intentar actualizar un área</strong></li>
+        <li><strong>Revisar errores en la consola</strong></li>
+        <li><strong>Verificar en "Network" que se envíe el header X-CSRF-TOKEN</strong></li>
+    </ol>
+    
+    <h2>📋 VERIFICACIONES TÉCNICAS:</h2>
+    
+    <h3>1. Meta tag CSRF:</h3>
+    <pre>&lt;meta name="csrf-token" content="{{ csrf_token() }}"&gt;</pre>
+    
+    <h3>2. Configuración AJAX:</h3>
+    <pre>
+$.ajaxSetup({
+    headers: {
+        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+    }
+});
+    </pre>
+    
+    <h3>3. Formulario con CSRF:</h3>
+    <pre>
+&lt;form id="areaForm"&gt;
+    @csrf
+    ...
+&lt;/form&gt;
+    </pre>
+    
+    <h3>4. Petición AJAX con _method:</h3>
+    <pre>
+// Para métodos PUT, agregar _method
+if (method === 'PUT') {
+    formData += '&_method=PUT';
+}
+
+$.ajax({
+    url: url,
+    method: 'POST', // Siempre usar POST para compatibilidad
+    data: formData,
+    ...
+});
+    </pre>
+    
+    <h2>🎯 RESULTADO ESPERADO:</h2>
+    <ul>
+        <li>✅ No más errores "Desajuste de token CSRF"</li>
+        <li>✅ Actualizaciones de áreas funcionando correctamente</li>
+        <li>✅ Mensajes de éxito mostrados</li>
+        <li>✅ DataTable actualizado automáticamente</li>
+    </ul>
+    
+    <h2>🚨 SI AÚN HAY PROBLEMAS:</h2>
+    <ol>
+        <li><strong>Limpiar caché del navegador</strong> (Ctrl+F5)</li>
+        <li><strong>Verificar logs de Laravel:</strong> storage/logs/laravel.log</li>
+        <li><strong>Verificar que la sesión esté activa</strong></li>
+        <li><strong>Comprobar configuración de sesiones en .env</strong></li>
+    </ol>
+    
+    <script>
+        // Script para verificar que el token CSRF esté disponible
+        $(document).ready(function() {
+            var csrfToken = $('meta[name="csrf-token"]').attr('content');
+            
+            if (csrfToken) {
+                console.log('✅ Token CSRF encontrado:', csrfToken.substring(0, 10) + '...');
+            } else {
+                console.log('❌ Token CSRF NO encontrado');
+            }
+            
+            // Verificar configuración AJAX
+            if ($.ajaxSettings.headers && $.ajaxSettings.headers['X-CSRF-TOKEN']) {
+                console.log('✅ Configuración AJAX CSRF establecida');
+            } else {
+                console.log('❌ Configuración AJAX CSRF NO establecida');
+            }
+        });
+    </script>
+</body>
+</html>

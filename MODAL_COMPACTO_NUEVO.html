@@ -1,0 +1,192 @@
+<!-- Modal Producto - Versión Compacta - Sin Scroll -->
+<div class="modal fade" id="modal-producto" tabindex="-1" data-backdrop="static">
+    <div class="modal-dialog modal-xl" style="max-width: 1000px;">
+        <div class="modal-content" style="border-radius: 8px; overflow: hidden;">
+            <div class="modal-header py-2" style="background: linear-gradient(135deg, #2c4370 0%, #1e2f4d 100%); border: none;">
+                <h6 class="modal-title text-white font-weight-bold mb-0">
+                    <i class="fas fa-box-open"></i> <span id="modal-titulo">Agregar Producto</span>
+                </h6>
+                <button type="button" class="close text-white" data-dismiss="modal" style="opacity: 1;">
+                    <span>&times;</span>
+                </button>
+            </div>
+            <form id="form-producto" enctype="multipart/form-data">
+                <div class="modal-body p-3" style="background: #f8f9fa;">
+                    <input type="hidden" id="producto_id" name="id">
+                    
+                    <div class="row">
+                        <!-- Columna Izquierda: Formulario (60%) -->
+                        <div class="col-lg-7">
+                            <!-- Imagen -->
+                            <div class="card mb-2 border-0 shadow-sm">
+                                <div class="card-body p-2">
+                                    <label class="font-weight-bold mb-1 small" style="color: #2c4370;">
+                                        <i class="fas fa-image"></i> Imagen
+                                    </label>
+                                    
+                                    <div id="drop-zone" class="border text-center p-2" style="border: 2px dashed #cbd5e0 !important; border-radius: 6px; background: #fff; cursor: pointer;">
+                                        <i class="fas fa-cloud-upload-alt" style="font-size: 1.5rem; color: #2c4370;"></i>
+                                        <p class="mb-1 small" style="color: #2d3748;">Arrastra imagen o <span class="text-primary">busca</span></p>
+                                        <p class="mb-0" style="font-size: 0.7rem; color: #999;">JPG, PNG (máx 10MB)</p>
+                                        <input type="file" id="imagen" name="imagen" accept="image/*" style="display: none;">
+                                    </div>
+                                    
+                                    <div id="image-preview-container" class="mt-1" style="display: none;">
+                                        <div class="position-relative d-inline-block">
+                                            <img id="img-preview-modal" src="" class="img-fluid rounded" style="max-height: 80px;">
+                                            <button type="button" class="btn btn-danger btn-sm position-absolute" id="btn-remove-image" style="top: 2px; right: 2px; border-radius: 50%; width: 20px; height: 20px; padding: 0; font-size: 0.7rem;">
+                                                <i class="fas fa-times"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Detalles -->
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body p-2">
+                                    <label class="font-weight-bold mb-1 small" style="color: #2c4370;">
+                                        <i class="fas fa-info-circle"></i> Detalles
+                                    </label>
+                                    
+                                    <!-- Título -->
+                                    <div class="form-group mb-2">
+                                        <input type="text" class="form-control form-control-sm" id="titulo" name="titulo" required 
+                                               placeholder="Título del producto *" 
+                                               style="border-radius: 4px;">
+                                    </div>
+
+                                    <!-- Categoría y Estado -->
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group mb-2">
+                                                <select class="form-control form-control-sm" id="categoria" name="categoria" required style="border-radius: 4px;">
+                                                    @foreach($categorias as $cat)
+                                                        @if($cat['nombre'] != 'Todos')
+                                                            <option value="{{ $cat['nombre'] }}">{{ $cat['nombre'] }}</option>
+                                                        @endif
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group mb-2">
+                                                <select class="form-control form-control-sm" id="estado" name="estado" required style="border-radius: 4px;">
+                                                    <option value="activo">Nuevo</option>
+                                                    <option value="destacado">Destacado</option>
+                                                    <option value="inactivo">Usado</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Precio y Orden -->
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <div class="form-group mb-2">
+                                                <div class="input-group input-group-sm">
+                                                    <div class="input-group-prepend">
+                                                        <span class="input-group-text">$</span>
+                                                    </div>
+                                                    <input type="number" class="form-control form-control-sm" id="precio" name="precio" 
+                                                           step="0.01" min="0" placeholder="Precio">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="form-group mb-2">
+                                                <input type="number" class="form-control form-control-sm" id="orden" name="orden" min="0" placeholder="Orden" style="border-radius: 4px;">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Descripción -->
+                                    <div class="form-group mb-2">
+                                        <textarea class="form-control form-control-sm" id="descripcion" name="descripcion" rows="2" 
+                                                  placeholder="Descripción breve..." 
+                                                  style="resize: none; font-size: 0.85rem; border-radius: 4px;"></textarea>
+                                    </div>
+
+                                    <!-- URL Externa -->
+                                    <div class="form-group mb-0">
+                                        <input type="url" class="form-control form-control-sm" id="url_externa" name="url_externa" placeholder="URL externa (opcional)" style="border-radius: 4px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Columna Derecha: Vista Previa (40%) -->
+                        <div class="col-lg-5">
+                            <div class="card border-0 shadow">
+                                <div class="card-header text-white py-1 d-flex justify-content-between align-items-center" style="background: linear-gradient(135deg, #2c4370 0%, #1e2f4d 100%);">
+                                    <span class="font-weight-bold" style="font-size: 0.75rem;">VISTA PREVIA</span>
+                                    <span class="badge badge-light" style="color: #2c4370; font-size: 0.65rem;">Live</span>
+                                </div>
+                                
+                                <!-- Imagen Preview -->
+                                <div class="position-relative" style="background: #f0f4f7; height: 140px; overflow: hidden;">
+                                    <img id="preview-product-image" src="https://via.placeholder.com/400x300/e2e8f0/64748b?text=Sin+Imagen" 
+                                         class="w-100 h-100" style="object-fit: cover; opacity: 0.7;">
+                                </div>
+
+                                <!-- Detalles Preview -->
+                                <div class="card-body p-2">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <h6 class="mb-0 small font-weight-bold" id="preview-titulo" style="color: #2d3748; flex: 1; font-size: 0.85rem;">
+                                            Título del Producto
+                                        </h6>
+                                        <span class="font-weight-bold ml-1" id="preview-precio" style="color: #2c4370; font-size: 0.95rem;">
+                                            $0.00
+                                        </span>
+                                    </div>
+
+                                    <div class="d-flex align-items-center mb-1">
+                                        <div class="text-warning mr-1" style="font-size: 0.65rem;">
+                                            ★★★★★
+                                        </div>
+                                        <span class="text-muted" style="font-size: 0.65rem;">4.8 (124)</span>
+                                    </div>
+
+                                    <div class="mb-1">
+                                        <span class="badge badge-light mr-1" id="preview-estado" style="background: #edf2f7; color: #4a5568; font-size: 0.65rem; padding: 2px 6px;">Nuevo</span>
+                                        <span class="badge badge-light" id="preview-categoria" style="background: #edf2f7; color: #4a5568; font-size: 0.65rem; padding: 2px 6px;">Categoría</span>
+                                    </div>
+
+                                    <div class="border-top pt-1 mt-1">
+                                        <div class="d-flex align-items-center justify-content-between">
+                                            <div class="d-flex align-items-center">
+                                                <div class="rounded-circle bg-secondary mr-1" style="width: 24px; height: 24px;"></div>
+                                                <div>
+                                                    <p class="mb-0 font-weight-bold" style="font-size: 0.7rem; color: #2d3748;">Vendedor</p>
+                                                    <p class="mb-0 text-muted" style="font-size: 0.6rem;">100% Positivo</p>
+                                                </div>
+                                            </div>
+                                            <i class="fas fa-heart text-muted" style="font-size: 0.8rem;"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tip -->
+                            <div class="alert alert-info mt-2 p-2 mb-0" style="border-radius: 6px; border: none; background: rgba(44, 67, 112, 0.08);">
+                                <i class="fas fa-lightbulb mr-1" style="color: #2c4370; font-size: 0.8rem;"></i>
+                                <span style="color: #1e2f4d; font-size: 0.7rem;">
+                                    Fotos claras aumentan ventas 45%
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer py-2" style="background: white; border-top: 1px solid #e2e8f0;">
+                    <button type="button" class="btn btn-sm btn-light" data-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-sm text-white" style="background: linear-gradient(135deg, #2c4370 0%, #1e2f4d 100%); border: none;">
+                        <i class="fas fa-check"></i> Publicar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

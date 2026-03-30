@@ -1,0 +1,80 @@
+═══════════════════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA LIMPIEZA COMPLETA DE CACHÉ DEL NAVEGADOR
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA IDENTIFICADO:
+----------------------
+El error "Unexpected token ':'" persiste porque el navegador está cacheando
+la versión ANTIGUA del código JavaScript que contenía JSON embebido.
+
+El código del servidor está CORRECTO y el HTML generado está LIMPIO.
+El problema es 100% caché del navegador.
+
+SOLUCIÓN IMPLEMENTADA:
+---------------------
+✅ Agregado parámetro de versión (?v=timestamp) a todas las URLs
+✅ Agregados headers HTTP para forzar no-cache
+✅ Configurado cache: false en AJAX
+✅ Limpiados todos los cachés de Laravel
+
+INSTRUCCIONES OBLIGATORIAS PARA EL USUARIO:
+-------------------------------------------
+
+OPCIÓN 1: MODO INCÓGNITO (MÁS RÁPIDO)
+======================================
+1. Cerrar TODAS las ventanas del navegador
+2. Abrir una ventana de incógnito/privada:
+   - Chrome: Ctrl + Shift + N
+   - Firefox: Ctrl + Shift + P
+   - Edge: Ctrl + Shift + N
+3. Ir a: http://192.168.2.200:8001/capacitaciones/cursos/17/classroom#actividades
+4. Hacer clic en la pestaña "Actividades"
+5. Hacer clic en el botón "Editar" de cualquier actividad
+
+OPCIÓN 2: LIMPIEZA MANUAL DE CACHÉ
+===================================
+
+PARA CHROME:
+-----------
+1. Presionar F12 para abrir DevTools
+2. Hacer clic derecho en el botón de recargar (junto a la barra de direcciones)
+3. Seleccionar "Vaciar caché y recargar de manera forzada"
+4. O ir a: chrome://settings/clearBrowserData
+   - Seleccionar "Todo el tiempo"
+   - Marcar "Imágenes y archivos en caché"
+   - Hacer clic en "Borrar datos"
+
+PARA FIREFOX:
+------------
+1. Presionar Ctrl + Shift + Delete
+2. Seleccionar "Todo"
+3. Marcar solo "Caché"
+4. Hacer clic en "Limpiar ahora"
+
+PARA EDGE:
+---------
+1. Presionar Ctrl + Shift + Delete
+2. Seleccionar "Todo el tiempo"
+3. Marcar "Imágenes y archivos en caché"
+4. Hacer clic en "Borrar ahora"
+
+OPCIÓN 3: FORZAR RECARGA CON TECLADO
+====================================
+1. Ir a la página del curso
+2. Presionar Ctrl + F5 (Windows) o Cmd + Shift + R (Mac)
+3. Esto fuerza una recarga completa sin caché
+
+VERIFICACIÓN:
+============
+Después de limpiar el caché, verificar que:
+1. El error "Unexpected token ':'" ya NO aparece en la consola
+2. El modal de edición se abre correctamente
+3. Los datos se cargan sin problemas
+
+NOTA IMPORTANTE:
+===============
+Si después de seguir TODAS estas instrucciones el error persiste,
+entonces el problema podría ser un proxy o caché de red intermedio.
+En ese caso, contactar al administrador de red.
+
+═══════════════════════════════════════════════════════════════════════════

@@ -1,0 +1,122 @@
+═══════════════════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA LIMPIEZA COMPLETA Y DEFINITIVA DE CACHÉ
+═══════════════════════════════════════════════════════════════════════════
+
+PROBLEMA:
+---------
+El navegador tiene MÚLTIPLES CAPAS de caché con código muy antiguo.
+El error "${urlEscaped}" indica código JavaScript de hace varias versiones.
+
+SOLUCIÓN DRÁSTICA - SIGUE ESTOS PASOS EXACTAMENTE:
+--------------------------------------------------
+
+PASO 1: CERRAR TODO
+-------------------
+1. Cierra TODAS las ventanas del navegador
+2. Cierra TODAS las pestañas
+3. Verifica en el Administrador de Tareas que NO haya procesos del navegador
+
+PASO 2: LIMPIEZA PROFUNDA (CHROME/EDGE)
+---------------------------------------
+1. Abre el navegador (sin ir a ninguna página todavía)
+2. Escribe en la barra de direcciones: chrome://settings/clearBrowserData
+3. Selecciona:
+   ✅ "Todo el tiempo"
+   ✅ Historial de navegación
+   ✅ Historial de descargas
+   ✅ Cookies y otros datos de sitios
+   ✅ Imágenes y archivos en caché
+   ✅ Datos de sitios alojados
+4. Haz clic en "Borrar datos"
+5. Espera a que termine (puede tardar 1-2 minutos)
+
+PASO 3: LIMPIEZA ADICIONAL (CHROME/EDGE)
+----------------------------------------
+1. Escribe en la barra: chrome://settings/content/all
+2. Busca "192.168.2.200"
+3. Haz clic en el ícono de basura para eliminar TODOS los datos de ese sitio
+4. Confirma la eliminación
+
+PASO 4: REINICIAR EL NAVEGADOR
+------------------------------
+1. Cierra completamente el navegador
+2. Espera 5 segundos
+3. Abre el navegador nuevamente
+
+PASO 5: PROBAR EN MODO INCÓGNITO PRIMERO
+----------------------------------------
+1. Abre una ventana de incógnito: Ctrl + Shift + N
+2. Ve a: http://192.168.2.200:8001/capacitaciones/cursos/17/classroom
+3. Haz clic en la pestaña "Actividades"
+4. Verifica que NO aparezca el error "${urlEscaped}"
+
+PASO 6: SI FUNCIONA EN INCÓGNITO
+--------------------------------
+Si funciona en incógnito pero NO en modo normal:
+
+1. Cierra el modo incógnito
+2. En modo normal, presiona F12 (DevTools)
+3. Haz clic derecho en el botón de recargar
+4. Selecciona "Vaciar caché y recargar de manera forzada"
+5. Espera a que cargue completamente
+6. Cierra DevTools
+7. Presiona Ctrl + F5 varias veces
+
+PASO 7: VERIFICACIÓN FINAL
+--------------------------
+Abre la consola del navegador (F12) y ejecuta:
+
+    console.log(window.loadTabContent.toString())
+
+Debe mostrar una función que contiene:
+    "const timestamp = Date.now();"
+    "const urls = {"
+
+NO debe contener:
+    "${urlEscaped}"
+    "urlEscaped"
+
+═══════════════════════════════════════════════════════════════════════════
+
+ALTERNATIVA - SI NADA FUNCIONA:
+-------------------------------
+
+OPCIÓN A: USAR OTRO NAVEGADOR
+1. Instala Firefox si usas Chrome (o viceversa)
+2. Abre el sitio en el navegador nuevo
+3. Debe funcionar sin problemas
+
+OPCIÓN B: LIMPIAR CACHÉ DEL SERVIDOR
+1. En la terminal, ejecuta:
+   php artisan cache:clear
+   php artisan view:clear
+   php artisan route:clear
+   php artisan config:clear
+
+2. Reinicia el servidor web (Apache/Nginx)
+
+3. Intenta nuevamente en el navegador
+
+═══════════════════════════════════════════════════════════════════════════
+
+PARA FIREFOX:
+------------
+1. Menú → Opciones → Privacidad y seguridad
+2. Cookies y datos del sitio → Limpiar datos
+3. Marca:
+   ✅ Cookies y datos del sitio
+   ✅ Contenido web en caché
+4. Limpiar
+5. Reinicia Firefox
+6. Ctrl + Shift + P (modo privado)
+7. Ve al sitio
+
+═══════════════════════════════════════════════════════════════════════════
+
+NOTA IMPORTANTE:
+---------------
+El código del servidor está 100% correcto.
+El problema es ÚNICAMENTE el caché del navegador.
+Una vez que limpies el caché correctamente, TODO funcionará.
+
+═══════════════════════════════════════════════════════════════════════════

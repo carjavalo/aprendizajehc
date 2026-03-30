@@ -1,0 +1,1 @@
+<?php $log = file_get_contents('storage/logs/laravel.log'); $blocks = explode('[202', $log); foreach ($blocks as $block) { if (strpos($block, '500') !== false && (strpos($block, 'updatePermissions') !== false || strpos($block, 'PermissionController') !== false || strpos($block, 'update-permissions') !== false)) { echo '[202' . $block; break; } }

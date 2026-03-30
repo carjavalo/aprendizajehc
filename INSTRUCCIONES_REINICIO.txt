@@ -1,0 +1,129 @@
+═══════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA APLICAR EL NUEVO LÍMITE DE 600 MB
+═══════════════════════════════════════════════════════════════
+
+✅ LÍMITES ACTUALIZADOS:
+   • Tamaño total por curso: 600 MB
+   • Tamaño por archivo individual: 200 MB
+   • Número de archivos: 100
+   • Tiempo de ejecución: 15 minutos
+   • Memoria: 1024 MB (1 GB)
+
+═══════════════════════════════════════════════════════════════
+
+📋 PASOS PARA APLICAR LOS CAMBIOS:
+
+1. REINICIAR APACHE (IMPORTANTE)
+   ────────────────────────────────
+   • Abre el Panel de Control de XAMPP
+   • Haz click en el botón "Stop" de Apache
+   • Espera 5 segundos
+   • Haz click en el botón "Start" de Apache
+   • Verifica que diga "Running" en verde
+
+2. LIMPIAR CACHÉ DEL NAVEGADOR
+   ────────────────────────────────
+   Opción A:
+   • Presiona Ctrl + Shift + Delete
+   • Selecciona "Caché"
+   • Click en "Borrar datos"
+
+   Opción B (Recarga forzada):
+   • Presiona Ctrl + Shift + R
+   • O presiona F5 varias veces
+
+3. VERIFICAR CAMBIOS
+   ────────────────────────────────
+   • Ve a: http://127.0.0.1:8000/capacitaciones/cursos/create
+   • Abre la consola del navegador (F12)
+   • En la pestaña "Network", verifica que no haya errores
+   • Intenta crear un curso con archivos
+
+═══════════════════════════════════════════════════════════════
+
+📊 ARCHIVOS MODIFICADOS:
+
+✓ public/.htaccess
+  → upload_max_filesize = 700M
+  → post_max_size = 700M
+  → max_execution_time = 900
+  → memory_limit = 1024M
+
+✓ public/.user.ini
+  → upload_max_filesize = 700M
+  → post_max_size = 700M
+  → memory_limit = 1024M
+
+✓ public/js/course-wizard.js
+  → maxSize = 600 MB (límite total)
+  → Límite individual = 200 MB por archivo
+
+═══════════════════════════════════════════════════════════════
+
+💡 RECOMENDACIONES PARA CURSOS CON MUCHA INFORMACIÓN:
+
+1. VIDEOS LARGOS (> 200 MB):
+   ✓ Súbelos a YouTube (público o no listado)
+   ✓ Copia el enlace
+   ✓ Pégalo en "URL Externa" del material
+   → Ventajas: Ilimitado, streaming automático
+
+2. DOCUMENTOS GRANDES (> 100 MB):
+   ✓ Súbelos a Google Drive
+   ✓ Cambia permisos: "Cualquiera con el enlace"
+   ✓ Copia el enlace
+   ✓ Pégalo en "URL Externa"
+   → Ventajas: Ilimitado, vista previa integrada
+
+3. MÚLTIPLES ARCHIVOS:
+   ✓ Crea una carpeta en Google Drive
+   ✓ Sube todos los archivos ahí
+   ✓ Comparte la carpeta
+   ✓ Pega el enlace de la carpeta
+   → Ventajas: Todo organizado en un lugar
+
+4. IMÁGENES Y PDFS MEDIANOS (< 200 MB):
+   ✓ Súbelos directamente
+   → Ventajas: Integración directa, acceso rápido
+
+═══════════════════════════════════════════════════════════════
+
+🎯 EJEMPLOS DE USO:
+
+Curso: "Programación Web Completa"
+────────────────────────────────────
+• Portada: banner.jpg (3 MB) → Subir directo ✓
+• Video 1: Introducción (450 MB) → YouTube URL ✓
+• Video 2: Ejercicios (380 MB) → YouTube URL ✓
+• PDF: Libro completo (150 MB) → Subir directo ✓
+• Código: Ejemplos.zip (45 MB) → Subir directo ✓
+• Slides: presentaciones.pdf (78 MB) → Subir directo ✓
+
+Total subido directo: 276 MB ✓ (dentro del límite de 600 MB)
+Total con URLs: Ilimitado ✓
+
+═══════════════════════════════════════════════════════════════
+
+⚠️ SOLUCIÓN DE PROBLEMAS:
+
+Si aún aparece el error 413:
+
+1. Verifica que Apache se haya reiniciado correctamente
+2. Limpia el caché del navegador completamente
+3. Cierra y abre el navegador nuevamente
+4. Verifica la consola del navegador (F12) por otros errores
+5. Revisa el tamaño total de tus archivos
+
+Si el problema persiste:
+• Divide el material en 2 cursos
+• Usa más URLs externas (YouTube, Drive)
+• Comprime videos antes de subir
+
+═══════════════════════════════════════════════════════════════
+
+📞 SOPORTE:
+Si necesitas ayuda adicional, revisa:
+• La consola del navegador (F12 → Console)
+• Los logs de Apache (en XAMPP/apache/logs/error.log)
+
+═══════════════════════════════════════════════════════════════

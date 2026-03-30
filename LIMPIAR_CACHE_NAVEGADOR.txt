@@ -1,0 +1,160 @@
+═══════════════════════════════════════════════════════════════
+  INSTRUCCIONES PARA LIMPIAR CACHÉ DEL NAVEGADOR
+═══════════════════════════════════════════════════════════════
+
+✅ CACHÉ DE LARAVEL LIMPIADA:
+   - Vistas compiladas: Limpiadas
+   - Caché de aplicación: Limpiada
+
+⚠️ AHORA DEBES LIMPIAR LA CACHÉ DEL NAVEGADOR
+
+═══════════════════════════════════════════════════════════════
+
+🌐 GOOGLE CHROME / MICROSOFT EDGE
+
+Opción 1: HARD REFRESH (Más Rápido)
+─────────────────────────────────────────────────────────
+1. Ve a la página: http://127.0.0.1:8000/capacitaciones/cursos/create
+2. Presiona: Ctrl + Shift + R
+   (o Ctrl + F5)
+3. Espera que la página recargue completamente
+4. ✅ El error debe desaparecer
+
+Opción 2: LIMPIAR CACHÉ COMPLETA
+─────────────────────────────────────────────────────────
+1. Presiona: Ctrl + Shift + Delete
+2. Selecciona:
+   ✓ Imágenes y archivos en caché
+   ✓ Intervalo de tiempo: "Todo"
+3. Click en "Borrar datos"
+4. Cierra y abre el navegador
+5. Ve a: http://127.0.0.1:8000/capacitaciones/cursos/create
+
+═══════════════════════════════════════════════════════════════
+
+🦊 FIREFOX
+
+Opción 1: HARD REFRESH
+─────────────────────────────────────────────────────────
+1. Ve a la página: http://127.0.0.1:8000/capacitaciones/cursos/create
+2. Presiona: Ctrl + Shift + R
+3. Espera que la página recargue
+4. ✅ El error debe desaparecer
+
+Opción 2: LIMPIAR CACHÉ
+─────────────────────────────────────────────────────────
+1. Presiona: Ctrl + Shift + Delete
+2. Selecciona:
+   ✓ Caché
+   ✓ Intervalo: "Todo"
+3. Click en "Limpiar ahora"
+4. Cierra y abre el navegador
+
+═══════════════════════════════════════════════════════════════
+
+🔍 VERIFICAR QUE EL ERROR SE CORRIGIÓ
+
+1. Abre DevTools:
+   - Presiona F12
+   - O Click derecho → Inspeccionar
+
+2. Ve a la pestaña "Console"
+
+3. Recarga la página: Ctrl + Shift + R
+
+4. ANTES (con caché):
+   ❌ jQuery.Deferred exception: bsCustomFileInput is not defined
+   ❌ ReferenceError: bsCustomFileInput is not defined
+
+5. DESPUÉS (sin caché):
+   ✅ No debe aparecer ningún error de bsCustomFileInput
+   ✅ La consola debe estar limpia
+
+═══════════════════════════════════════════════════════════════
+
+💡 SI AÚN APARECE EL ERROR
+
+1. Verifica que realmente hiciste Hard Refresh:
+   - Ctrl + Shift + R (NO solo F5)
+
+2. Cierra TODAS las pestañas del navegador
+
+3. Cierra el navegador completamente
+
+4. Abre el navegador nuevamente
+
+5. Ve directo a: http://127.0.0.1:8000/capacitaciones/cursos/create
+
+6. Presiona F12 para abrir consola
+
+7. Verifica que no haya errores
+
+═══════════════════════════════════════════════════════════════
+
+🎯 MODO INCÓGNITO (Prueba Rápida)
+
+Para verificar sin limpiar caché:
+
+1. Abre ventana de incógnito:
+   - Chrome/Edge: Ctrl + Shift + N
+   - Firefox: Ctrl + Shift + P
+
+2. Ve a: http://127.0.0.1:8000/capacitaciones/cursos/create
+
+3. Presiona F12
+
+4. Si NO aparece el error:
+   ✅ Confirma que es problema de caché
+   ✅ Limpia la caché del navegador normal
+
+═══════════════════════════════════════════════════════════════
+
+📋 COMANDOS EJECUTADOS EN LARAVEL
+
+✅ php artisan view:clear
+   → Limpió vistas compiladas
+
+✅ php artisan cache:clear
+   → Limpió caché de aplicación
+
+═══════════════════════════════════════════════════════════════
+
+🔧 ARCHIVOS CORREGIDOS
+
+Los siguientes archivos YA NO usan bsCustomFileInput:
+
+✅ resources/views/admin/capacitaciones/cursos/create.blade.php
+   Línea 928: // bsCustomFileInput.init(); // No necesario
+
+✅ resources/views/admin/capacitaciones/cursos/edit.blade.php
+   Línea 314: // bsCustomFileInput.init();
+
+✅ resources/views/admin/capacitaciones/cursos/classroom/materiales.blade.php
+   Línea 244: // bsCustomFileInput.init();
+
+TODOS ESTÁN COMENTADOS ✓
+
+═══════════════════════════════════════════════════════════════
+
+⚡ SOLUCIÓN RÁPIDA (RESUMEN)
+
+En Chrome/Edge:
+1. Ir a: http://127.0.0.1:8000/capacitaciones/cursos/create
+2. Presionar: Ctrl + Shift + R
+3. Listo!
+
+═══════════════════════════════════════════════════════════════
+
+✨ DESPUÉS DE LIMPIAR CACHÉ
+
+El sistema funcionará completamente sin errores:
+
+✅ No más error de bsCustomFileInput
+✅ Crear cursos funciona
+✅ Subir archivos de hasta 200MB funciona
+✅ URLs de YouTube funcionan
+✅ Clases en línea funcionan
+✅ Quizzes funcionan
+✅ Todo el wizard funciona correctamente
+
+═══════════════════════════════════════════════════════════════
