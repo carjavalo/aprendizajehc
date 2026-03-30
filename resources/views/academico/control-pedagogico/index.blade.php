@@ -8,6 +8,24 @@
 
 @section('content')
 <div class="gradebook-container">
+    @if(isset($sinCursos) && $sinCursos)
+        {{-- Estado vacío: no hay cursos disponibles --}}
+        <div class="card shadow-sm mb-4">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                <h4>No hay cursos disponibles</h4>
+                <p class="text-muted">
+                    @if(auth()->user()->role === 'Docente')
+                        No tiene cursos asignados actualmente. Contacte al administrador para que le asigne cursos desde 
+                        <strong>Configuración → Asignación de Cursos</strong>.
+                    @else
+                        No se encontraron cursos activos en el sistema. Verifique que existan cursos con estado <strong>activo</strong> 
+                        en <strong>Configuración → Cursos</strong>.
+                    @endif
+                </p>
+            </div>
+        </div>
+    @else
     <!-- Selector de Curso -->
     <div class="card shadow-sm mb-4">
         <div class="card-body">
@@ -564,6 +582,7 @@
         </div>
     </div>
 </div>
+    @endif
 @stop
 
 @section('css')

@@ -1,7 +1,7 @@
 <?php
 /**
  * Script para agregar permisos de Reportes en producción (cPanel).
- * URL: https://localhost/AprendizajeHC/public/add_reportes_permissions.php
+ * URL: https://aprendizajehc.huv.gov.co/public/add_reportes_permissions.php
  * ELIMINA ESTE ARCHIVO DESPUÉS DE USARLO.
  */
 

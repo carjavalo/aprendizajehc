@@ -26,6 +26,17 @@ class ControlPedagogicoController extends Controller
         // Obtener cursos según el rol
         $cursos = $this->getCursosSegunRol($user);
         
+        // Si no hay cursos disponibles, mostrar la vista con mensaje informativo
+        if ($cursos->isEmpty()) {
+            return view('academico.control-pedagogico.index', [
+                'cursos' => $cursos,
+                'cursoActual' => null,
+                'estudiantes' => collect(),
+                'estructuraEvaluacion' => [],
+                'sinCursos' => true,
+            ]);
+        }
+        
         // Curso seleccionado (por defecto el primero)
         $cursoId = $request->get('curso_id', $cursos->first()->id ?? null);
         $cursoActual = Curso::with(['materiales' => function($query) {
@@ -33,7 +44,13 @@ class ControlPedagogicoController extends Controller
         }, 'actividades', 'plantillaCertificado'])->find($cursoId);
         
         if (!$cursoActual) {
-            return redirect()->back()->with('error', 'No hay cursos disponibles');
+            return view('academico.control-pedagogico.index', [
+                'cursos' => $cursos,
+                'cursoActual' => null,
+                'estudiantes' => collect(),
+                'estructuraEvaluacion' => [],
+                'sinCursos' => true,
+            ]);
         }
         
         // Obtener estudiantes inscritos con sus calificaciones
