@@ -114,6 +114,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('users/{user}', [UserController::class, 'update'])->name('users.update')->middleware('check.permission:users.edit');
     Route::patch('users/{user}', [UserController::class, 'update'])->middleware('check.permission:users.edit');
     Route::delete('users/{user}', [UserController::class, 'destroy'])->name('users.destroy')->middleware('check.permission:users.delete');
+    Route::post('users/{user}/toggle-email-verification', [UserController::class, 'toggleEmailVerification'])->name('users.toggle-email-verification')->middleware(\App\Http\Middleware\CheckSuperAdminRole::class);
     
     // Roles solo accesible por Super Admin
     Route::resource('roles', \App\Http\Controllers\RoleController::class)->middleware(\App\Http\Middleware\CheckSuperAdminRole::class);

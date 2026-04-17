@@ -103,6 +103,15 @@
                                             <i class="fas fa-pencil-alt"></i>
                                         </a>
                                         @endcan
+                                        @if(auth()->user()->role === 'Super Admin')
+                                        <button type="button" 
+                                                class="btn btn-sm btn-toggle-email-verification {{ $user->email_verified_at ? 'btn-success' : 'btn-secondary' }}" 
+                                                data-user-id="{{ $user->id }}" 
+                                                data-verified="{{ $user->email_verified_at ? '1' : '0' }}"
+                                                title="{{ $user->email_verified_at ? 'Correo Verificado - Click para desactivar' : 'Correo No Verificado - Click para activar' }}">
+                                            <i class="fas {{ $user->email_verified_at ? 'fa-envelope-open' : 'fa-envelope' }}"></i>
+                                        </button>
+                                        @endif
                                         @can('users.delete')
                                         <form action="{{ route('users.destroy', $user->id) }}" method="POST" class="d-inline delete-form">
                                             @csrf
@@ -302,7 +311,7 @@
                     { responsivePriority: 4, targets: 5 }, // Documento es prioridad 4
                     { responsivePriority: 5, targets: 9 }, // Rol es prioridad 5
                     { responsivePriority: 6, targets: 11 }, // Acciones es prioridad 6
-                    { width: '120px', targets: 11 } // Ancho para columna Acciones
+                    { width: '160px', targets: 11 } // Ancho para columna Acciones
                 ]
             });
 
@@ -321,6 +330,58 @@
                 }).then((result) => {
                     if (result.isConfirmed) {
                         this.submit();
+                    }
+                });
+            });
+
+            // Toggle verificación de correo
+            $(document).on('click', '.btn-toggle-email-verification', function() {
+                const btn = $(this);
+                const userId = btn.data('user-id');
+                const isVerified = btn.data('verified') == '1';
+                const action = isVerified ? 'desactivar' : 'activar';
+
+                Swal.fire({
+                    title: `¿${isVerified ? 'Desactivar' : 'Activar'} verificación de correo?`,
+                    text: `Se va a ${action} la verificación de correo para este usuario.`,
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: isVerified ? '#6c757d' : '#28a745',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: `Sí, ${action}`,
+                    cancelButtonText: 'Cancelar'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: `/users/${userId}/toggle-email-verification`,
+                            type: 'POST',
+                            data: { _token: '{{ csrf_token() }}' },
+                            success: function(response) {
+                                if (response.success) {
+                                    if (response.verified) {
+                                        btn.removeClass('btn-secondary').addClass('btn-success');
+                                        btn.find('i').removeClass('fa-envelope').addClass('fa-envelope-open');
+                                        btn.attr('title', 'Correo Verificado - Click para desactivar');
+                                        btn.data('verified', '1');
+                                    } else {
+                                        btn.removeClass('btn-success').addClass('btn-secondary');
+                                        btn.find('i').removeClass('fa-envelope-open').addClass('fa-envelope');
+                                        btn.attr('title', 'Correo No Verificado - Click para activar');
+                                        btn.data('verified', '0');
+                                    }
+                                    Swal.fire({
+                                        icon: 'success',
+                                        title: 'Actualizado',
+                                        text: response.message,
+                                        timer: 2000,
+                                        showConfirmButton: false
+                                    });
+                                }
+                            },
+                            error: function(xhr) {
+                                Swal.fire('Error', xhr.responseJSON?.message || 'Error al actualizar la verificación', 'error');
+                            }
+                        });
                     }
                 });
             });

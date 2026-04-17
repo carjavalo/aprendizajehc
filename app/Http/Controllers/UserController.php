@@ -232,6 +232,32 @@ class UserController extends Controller
     }
 
     /**
+     * Toggle email verification status for a user.
+     */
+    public function toggleEmailVerification(string $id)
+    {
+        $user = User::findOrFail($id);
+
+        if ($user->email_verified_at) {
+            $user->email_verified_at = null;
+            $user->save();
+            return response()->json([
+                'success' => true,
+                'verified' => false,
+                'message' => "Verificación de correo desactivada para {$user->name}."
+            ]);
+        } else {
+            $user->email_verified_at = now();
+            $user->save();
+            return response()->json([
+                'success' => true,
+                'verified' => true,
+                'message' => "Correo verificado exitosamente para {$user->name}."
+            ]);
+        }
+    }
+
+    /**
      * Importar usuarios desde archivo Excel
      * 
      * Mapeo de columnas:
