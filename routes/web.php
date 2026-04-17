@@ -239,6 +239,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::match(['get', 'post'], 'curso/{curso}/inscribirse', [AcademicoController::class, 'inscribirseCurso'])->name('curso.inscribirse');
         Route::post('curso/{curso}/marcar-material/{material}', [AcademicoController::class, 'marcarMaterialVisto'])->name('curso.material.marcar');
         Route::post('curso/{curso}/entregar-actividad/{actividad}', [AcademicoController::class, 'entregarActividad'])->name('curso.actividad.entregar');
+        Route::get('curso/{curso}/datos-quiz/{actividad}', [AcademicoController::class, 'obtenerDatosQuiz'])->name('curso.quiz.datos');
         Route::post('curso/{curso}/resolver-quiz/{actividad}', [AcademicoController::class, 'resolverQuiz'])->name('curso.quiz.resolver');
     });
 

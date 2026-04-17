@@ -46,17 +46,6 @@ function showMaterialModal() {
     const porcentajeUsado = materialesExistentes.reduce((sum, mat) => sum + (parseFloat(mat.porcentajeCurso) || 0), 0);
     const porcentajeDisponible = Math.max(0, 100 - porcentajeUsado);
     
-    // Bloquear si ya se alcanzó el 100%
-    if (porcentajeUsado >= 100) {
-        Swal.fire({
-            icon: 'warning',
-            title: 'Porcentaje completo',
-            html: `Ya se ha asignado el <strong>100%</strong> del porcentaje del curso entre los materiales existentes.<br><br>Para agregar un nuevo material, primero edita o elimina materiales existentes para liberar porcentaje.`,
-            confirmButtonText: 'Entendido'
-        });
-        return;
-    }
-    
     // Mostrar u ocultar la sección de prerrequisitos
     const mostrarPrerrequisitos = materialesExistentes.length > 0;
     
@@ -94,7 +83,7 @@ function showMaterialModal() {
                                 <div class="form-group mb-2">
                                     <label for="material-porcentaje">Porcentaje del Curso (%) *</label>
                                     <input type="number" class="form-control" id="material-porcentaje" 
-                                           min="0.1" max="${porcentajeDisponible}" step="0.1" value="" placeholder="0">
+                                           min="0" max="${porcentajeDisponible}" step="0.1" value="" placeholder="0">
                                     <small class="form-text" id="porcentaje-feedback">
                                         Disponible: <strong>${porcentajeDisponible.toFixed(1)}%</strong> de 100%
                                     </small>
@@ -347,8 +336,8 @@ function showMaterialModal() {
             }
             
             // Validación de porcentaje
-            if (porcentajeCurso <= 0) {
-                Swal.showValidationMessage('El porcentaje debe ser mayor a 0%. Cada material debe tener un porcentaje asignado.');
+            if (porcentajeCurso < 0) {
+                Swal.showValidationMessage('El porcentaje no puede ser negativo.');
                 return false;
             }
             
@@ -680,7 +669,7 @@ function editMaterial(materialId) {
                                 <div class="form-group mb-2">
                                     <label for="material-porcentaje">Porcentaje del Curso (%) *</label>
                                     <input type="number" class="form-control" id="material-porcentaje" 
-                                           min="0.1" max="${porcentajeDisponible}" step="0.1" value="${porcentajeActual}" placeholder="0">
+                                           min="0" max="${porcentajeDisponible}" step="0.1" value="${porcentajeActual}" placeholder="0">
                                     <small class="form-text" id="porcentaje-feedback">
                                         Disponible: <strong>${porcentajeDisponible.toFixed(1)}%</strong> de 100% (este material tiene ${porcentajeActual.toFixed(1)}%)
                                     </small>
@@ -939,8 +928,8 @@ function editMaterial(materialId) {
             }
             
             // Validación de porcentaje
-            if (porcentajeCurso <= 0) {
-                Swal.showValidationMessage('El porcentaje debe ser mayor a 0%. Cada material debe tener un porcentaje asignado.');
+            if (porcentajeCurso < 0) {
+                Swal.showValidationMessage('El porcentaje no puede ser negativo.');
                 return false;
             }
             
@@ -3266,8 +3255,8 @@ function updateCourseSummary() {
             
             let estadoIcon, estadoClass;
             if (!tieneActividades) {
-                estadoIcon = '<i class="fas fa-exclamation-triangle text-danger"></i>';
-                estadoClass = 'text-danger';
+                estadoIcon = '<i class="fas fa-info-circle text-muted"></i>';
+                estadoClass = 'text-muted';
             } else if (porcentajeExcedido) {
                 estadoIcon = '<i class="fas fa-times-circle text-danger"></i>';
                 estadoClass = 'text-danger';
@@ -3312,7 +3301,7 @@ function updateCourseSummary() {
                     <small class="text-muted">
                         <i class="fas fa-check-circle text-success"></i> Completo (100%) &nbsp;
                         <i class="fas fa-exclamation-circle text-warning"></i> Incompleto (&lt;100%) &nbsp;
-                        <i class="fas fa-exclamation-triangle text-danger"></i> Sin actividades &nbsp;
+                        <i class="fas fa-info-circle text-muted"></i> Sin actividades &nbsp;
                         <i class="fas fa-times-circle text-danger"></i> Excedido (&gt;100%)
                     </small>
                 </div>
@@ -3480,35 +3469,27 @@ function submitCourseData() {
         formData.append('imagen_portada', imagenPortada);
     }
 
-    // Validar que el porcentaje total de materiales no exceda 100%
+    // Validar que el porcentaje total de materiales sea exactamente 100%
     const porcentajeTotalMateriales = courseData.materials.reduce((sum, mat) => sum + (parseFloat(mat.porcentajeCurso) || 0), 0);
-    if (porcentajeTotalMateriales > 100) {
+    if (courseData.materials.length > 0 && Math.abs(porcentajeTotalMateriales - 100) > 0.1) {
         Swal.fire({
             icon: 'error',
-            title: 'Porcentaje de materiales excedido',
-            html: `La suma de los porcentajes de los materiales es <strong>${porcentajeTotalMateriales.toFixed(1)}%</strong>.<br>El máximo permitido es <strong>100%</strong>.<br><br>Por favor, ajusta los porcentajes de los materiales antes de crear el curso.`,
+            title: 'Porcentaje de materiales incompleto',
+            html: `La suma de los porcentajes de los materiales es <strong>${porcentajeTotalMateriales.toFixed(1)}%</strong>.<br>Los materiales deben totalizar exactamente <strong>100%</strong>.<br><br>Por favor, ajusta los porcentajes de los materiales.`,
             confirmButtonText: 'Entendido'
         });
         return;
     }
 
-    // Validar que cada material tenga al menos una actividad
-    if (courseData.materials.length > 0) {
-        const materialesSinActividad = courseData.materials.filter(mat => {
-            const actividadesDelMaterial = courseData.activities.filter(a => a.materialId === mat.id);
-            return actividadesDelMaterial.length === 0;
+    // Validar que el curso tenga al menos una actividad
+    if (!courseData.activities || courseData.activities.length === 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Sin actividades',
+            html: `El curso debe tener <strong>al menos una actividad</strong>.<br><br>Ve al <strong>Paso 4</strong> y crea al menos una actividad (Tarea, Quiz o Evaluación).`,
+            confirmButtonText: 'Entendido'
         });
-        
-        if (materialesSinActividad.length > 0) {
-            const listaMatSinAct = materialesSinActividad.map(m => `• ${m.title}`).join('<br>');
-            Swal.fire({
-                icon: 'error',
-                title: 'Materiales sin actividades',
-                html: `Cada material debe tener <strong>al menos una actividad</strong> asignada.<br><br>Los siguientes materiales no tienen actividades:<br><br>${listaMatSinAct}<br><br>Ve al <strong>Paso 4</strong> y crea al menos una actividad (Tarea, Quiz o Evaluación) para cada material.`,
-                confirmButtonText: 'Entendido'
-            });
-            return;
-        }
+        return;
     }
 
     // Validar que la suma de porcentajes de actividades por material no exceda 100%

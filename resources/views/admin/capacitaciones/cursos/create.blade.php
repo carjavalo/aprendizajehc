@@ -1128,42 +1128,38 @@
             }
             
             function validateStep4Activities() {
-                // Si hay materiales, cada uno debe tener al menos una actividad
-                if (typeof courseData !== 'undefined' && courseData.materials && courseData.materials.length > 0) {
-                    const materialesSinActividad = courseData.materials.filter(mat => {
-                        const actividadesDelMaterial = (courseData.activities || []).filter(a => a.materialId === mat.id);
-                        return actividadesDelMaterial.length === 0;
-                    });
-                    
-                    if (materialesSinActividad.length > 0) {
-                        const lista = materialesSinActividad.map(m => `• ${m.title}`).join('\n');
+                // El curso debe tener al menos una actividad
+                if (typeof courseData !== 'undefined') {
+                    if (!courseData.activities || courseData.activities.length === 0) {
                         Swal.fire({
                             icon: 'warning',
-                            title: 'Materiales sin actividades',
-                            html: `Cada material debe tener <strong>al menos una actividad</strong>.<br><br>Los siguientes materiales no tienen actividades asignadas:<br><br>${materialesSinActividad.map(m => `• <strong>${m.title}</strong>`).join('<br>')}<br><br>Crea al menos una actividad (Tarea, Quiz o Evaluación) para cada material.`,
+                            title: 'Sin actividades',
+                            html: `El curso debe tener <strong>al menos una actividad</strong>.<br><br>Crea al menos una actividad (Tarea, Quiz o Evaluación).`,
                             confirmButtonText: 'Entendido'
                         });
                         return false;
                     }
                     
                     // Validar que ningún material exceda 100% en la suma de sus actividades
-                    const materialesExcedidos = [];
-                    courseData.materials.forEach(mat => {
-                        const actividadesDelMaterial = (courseData.activities || []).filter(a => a.materialId === mat.id);
-                        const sumaPorcentajes = actividadesDelMaterial.reduce((sum, a) => sum + (parseFloat(a.porcentajeMaterial) || 0), 0);
-                        if (sumaPorcentajes > 100) {
-                            materialesExcedidos.push({ title: mat.title, suma: sumaPorcentajes });
-                        }
-                    });
-                    
-                    if (materialesExcedidos.length > 0) {
-                        Swal.fire({
-                            icon: 'error',
-                            title: 'Porcentaje de actividades excedido',
-                            html: `La suma de porcentajes de actividades no puede superar el <strong>100%</strong> por material.<br><br>${materialesExcedidos.map(m => `• <strong>${m.title}</strong>: ${m.suma.toFixed(1)}%`).join('<br>')}`,
-                            confirmButtonText: 'Entendido'
+                    if (courseData.materials && courseData.materials.length > 0) {
+                        const materialesExcedidos = [];
+                        courseData.materials.forEach(mat => {
+                            const actividadesDelMaterial = (courseData.activities || []).filter(a => a.materialId === mat.id);
+                            const sumaPorcentajes = actividadesDelMaterial.reduce((sum, a) => sum + (parseFloat(a.porcentajeMaterial) || 0), 0);
+                            if (sumaPorcentajes > 100) {
+                                materialesExcedidos.push({ title: mat.title, suma: sumaPorcentajes });
+                            }
                         });
-                        return false;
+                        
+                        if (materialesExcedidos.length > 0) {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Porcentaje de actividades excedido',
+                                html: `La suma de porcentajes de actividades no puede superar el <strong>100%</strong> por material.<br><br>${materialesExcedidos.map(m => `• <strong>${m.title}</strong>: ${m.suma.toFixed(1)}%`).join('<br>')}`,
+                                confirmButtonText: 'Entendido'
+                            });
+                            return false;
+                        }
                     }
                 }
                 return true;

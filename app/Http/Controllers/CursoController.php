@@ -337,13 +337,9 @@ class CursoController extends Controller
                         throw new \Exception("La suma de los porcentajes de los materiales ({$totalPorcentaje}%) excede el 100% permitido. Ajusta los porcentajes antes de crear el curso.");
                     }
                     
-                    // Validar que cada material tenga porcentaje > 0
-                    foreach ($materialsDataCheck as $index => $matCheck) {
-                        $porcentaje = floatval($matCheck['porcentajeCurso'] ?? 0);
-                        if ($porcentaje <= 0) {
-                            $titulo = $matCheck['title'] ?? 'Material ' . ($index + 1);
-                            throw new \Exception("El material '{$titulo}' tiene porcentaje 0%. Cada material debe tener un porcentaje asignado.");
-                        }
+                    // Validar que la suma de porcentajes totalice exactamente 100%
+                    if (abs($totalPorcentaje - 100.0) > 0.1) {
+                        throw new \Exception("La suma de los porcentajes de los materiales es {$totalPorcentaje}%. Los materiales deben totalizar exactamente 100%.");
                     }
                 }
                 
@@ -407,24 +403,6 @@ class CursoController extends Controller
                             throw new \Exception("La actividad '{$tituloAct}' tiene porcentaje 0%. Cada actividad debe tener un porcentaje asignado mayor a 0%.");
                         }
                     }
-                    
-                    // Validar que cada material tenga al menos una actividad
-                    foreach ($materialsDataCheck as $mat) {
-                        $matId = $mat['id'] ?? null;
-                        if ($matId) {
-                            $tieneActividad = false;
-                            foreach ($activitiesDataCheck as $actData) {
-                                if (($actData['materialId'] ?? null) == $matId) {
-                                    $tieneActividad = true;
-                                    break;
-                                }
-                            }
-                            if (!$tieneActividad) {
-                                $nombreMaterial = $mat['title'] ?? 'Material ID ' . $matId;
-                                throw new \Exception("El material '{$nombreMaterial}' no tiene actividades asignadas. Cada material debe tener al menos una actividad.");
-                            }
-                        }
-                    }
                 }
                 
                 try {
@@ -434,6 +412,12 @@ class CursoController extends Controller
                     \Log::error('Error procesando actividades: ' . $e->getMessage());
                     throw new \Exception('Error al procesar actividades: ' . $e->getMessage());
                 }
+            }
+
+            // Validar que el curso tenga al menos una actividad
+            $activitiesData = json_decode($request->input('activities_data', '[]'), true);
+            if (!is_array($activitiesData) || count($activitiesData) === 0) {
+                throw new \Exception("El curso debe tener al menos una actividad. Ve al Paso 4 y crea al menos una actividad.");
             }
 
             DB::commit();

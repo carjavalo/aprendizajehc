@@ -86,6 +86,10 @@
         <link rel="manifest" crossorigin="use-credentials" href="{{ asset('favicons/manifest.json') }}">
         <meta name="msapplication-TileColor" content="#ffffff">
         <meta name="msapplication-TileImage" content="{{ asset('favicon/ms-icon-144x144.png') }}">
+    @else
+        {{-- Fallback to the provided image in public/images/fabicon2.jpeg --}}
+        <link rel="icon" href="{{ asset('images/fabicon2.jpeg') }}" type="image/jpeg" />
+        <link rel="shortcut icon" href="{{ asset('images/fabicon2.jpeg') }}" type="image/jpeg" />
     @endif
 
 </head>

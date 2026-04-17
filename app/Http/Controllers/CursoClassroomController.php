@@ -990,37 +990,38 @@ class CursoClassroomController extends Controller
             $preguntas = $quizData['questions'] ?? [];
             
             // ========================================================
-            // BANCO DE PREGUNTAS: Filtrar y redistribuir si aplica
+            // BANCO DE PREGUNTAS Y ALEATORIZACIÓN: Filtrar y redistribuir
             // ========================================================
             $quizConfig = $quizData['quizConfig'] ?? [];
             $enableBank = $quizConfig['enableQuestionBank'] ?? false;
+            $randomizeOrder = $quizConfig['randomizeOrder'] ?? false;
             $questionIds = $request->input('question_ids', []);
             
-            if ($enableBank && !empty($questionIds)) {
-                // Filtrar solo las preguntas que fueron servidas al estudiante
+            // Si se enviaron question_ids (banco o aleatorización activos), filtrar
+            if (!empty($questionIds) && ($enableBank || $randomizeOrder)) {
                 $preguntasFiltradas = [];
                 foreach ($preguntas as $pregunta) {
                     if (in_array($pregunta['id'], $questionIds)) {
                         $preguntasFiltradas[] = $pregunta;
                     }
                 }
-                
-                // Redistribuir porcentajes proporcionalmente
-                $sumaSeleccionadas = 0;
-                foreach ($preguntasFiltradas as $p) {
-                    $sumaSeleccionadas += floatval($p['points'] ?? 0);
+                if (!empty($preguntasFiltradas)) {
+                    $preguntas = $preguntasFiltradas;
                 }
-                
-                $totalTarget = floatval($quizData['totalPoints'] ?? 100);
-                if ($sumaSeleccionadas > 0 && abs($sumaSeleccionadas - $totalTarget) > 0.01) {
-                    $factor = $totalTarget / $sumaSeleccionadas;
-                    foreach ($preguntasFiltradas as &$p) {
-                        $p['points'] = round(floatval($p['points']) * $factor, 2);
-                    }
-                    unset($p);
+            }
+            
+            // Redistribuir porcentajes para que las preguntas activas totalicen 100%
+            $totalTarget = floatval($quizData['totalPoints'] ?? 100);
+            $sumaSeleccionadas = 0;
+            foreach ($preguntas as $p) {
+                $sumaSeleccionadas += floatval($p['points'] ?? 0);
+            }
+            if ($sumaSeleccionadas > 0 && abs($sumaSeleccionadas - $totalTarget) > 0.01) {
+                $factor = $totalTarget / $sumaSeleccionadas;
+                foreach ($preguntas as &$p) {
+                    $p['points'] = round(floatval($p['points']) * $factor, 2);
                 }
-                
-                $preguntas = $preguntasFiltradas;
+                unset($p);
             }
             
             // ========================================================
@@ -1292,25 +1293,24 @@ class CursoClassroomController extends Controller
                 foreach ($selectedKeys as $key) {
                     $selectedQuestions[] = $allQuestions[$key];
                 }
-                
-                // Redistribuir valoraciones proporcionalmente
-                $selectedSum = 0;
-                foreach ($selectedQuestions as $q) {
-                    $selectedSum += floatval($q['points'] ?? 0);
-                }
-                
-                if ($selectedSum > 0) {
-                    $factor = $totalTarget / $selectedSum;
-                    foreach ($selectedQuestions as &$q) {
-                        $q['points'] = round(floatval($q['points']) * $factor, 2);
-                    }
-                    unset($q);
-                }
             }
             
             // Aleatorizar orden si está habilitado
             if ($randomizeOrder) {
                 shuffle($selectedQuestions);
+            }
+            
+            // Redistribuir porcentajes para que las preguntas activas totalicen 100%
+            $selectedSum = 0;
+            foreach ($selectedQuestions as $q) {
+                $selectedSum += floatval($q['points'] ?? 0);
+            }
+            if ($selectedSum > 0 && abs($selectedSum - $totalTarget) > 0.01) {
+                $factor = $totalTarget / $selectedSum;
+                foreach ($selectedQuestions as &$q) {
+                    $q['points'] = round(floatval($q['points']) * $factor, 2);
+                }
+                unset($q);
             }
             
             // Obtener IDs de preguntas seleccionadas

@@ -651,9 +651,38 @@ $(document).ready(function() {
 
 var quizTimer = null;
 var tiempoInicio = null;
+var currentQuizQuestionIds = [];
 
 // Función para iniciar el quiz/evaluación
 function iniciarQuiz(actividadId) {
+    // Cargar datos del quiz via AJAX (aplica aleatorización, banco de preguntas y redistribución de %)
+    Swal.fire({
+        title: 'Cargando...',
+        html: '<i class="fas fa-spinner fa-spin fa-2x"></i>',
+        showConfirmButton: false,
+        allowOutsideClick: false
+    });
+
+    $.ajax({
+        url: '{{ route("academico.curso.quiz.datos", [$curso->id, ":actividadId"]) }}'.replace(':actividadId', actividadId),
+        type: 'GET',
+        success: function(response) {
+            Swal.close();
+            if (response.success && response.actividad) {
+                mostrarModalQuiz(actividadId, response.actividad);
+            } else {
+                iniciarQuizFallback(actividadId);
+            }
+        },
+        error: function() {
+            Swal.close();
+            iniciarQuizFallback(actividadId);
+        }
+    });
+}
+
+// Fallback: cargar quiz desde textarea embebido (sin aleatorización server-side)
+function iniciarQuizFallback(actividadId) {
     const quizDataElement = document.getElementById('quiz-data-' + actividadId);
     
     if (!quizDataElement) {
@@ -664,7 +693,6 @@ function iniciarQuiz(actividadId) {
     try {
         const actividad = JSON.parse(quizDataElement.value);
         
-        // Fix for double-encoded JSON
         if (typeof actividad.contenido_json === 'string') {
             try {
                 actividad.contenido_json = JSON.parse(actividad.contenido_json);
@@ -691,6 +719,9 @@ function mostrarModalQuiz(actividadId, actividad) {
     const preguntas = quizData.questions || [];
     const duracion = quizData.duration || 30;
     const tipoActividad = actividad.tipo === 'evaluacion' ? 'Evaluación' : 'Quiz';
+    
+    // Almacenar IDs de preguntas servidas para envío posterior
+    currentQuizQuestionIds = quizData.questionIds || preguntas.map(p => p.id);
     
     if (preguntas.length === 0) {
         Swal.fire('Error', 'No hay preguntas configuradas', 'error');
@@ -910,7 +941,8 @@ function enviarRespuestasQuiz(actividadId, respuestas) {
         data: {
             _token: '{{ csrf_token() }}',
             respuestas: respuestas,
-            tiempo_transcurrido: tiempoTranscurrido
+            tiempo_transcurrido: tiempoTranscurrido,
+            question_ids: currentQuizQuestionIds || []
         },
         success: function(response) {
             if (response.success) {
