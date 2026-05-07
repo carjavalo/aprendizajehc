@@ -76,6 +76,12 @@ Route::get('/verificar-certificado', [VerificacionCertificadoController::class, 
 Route::post('/verificar-certificado', [VerificacionCertificadoController::class, 'buscar'])->name('verificar.buscar');
 Route::get('/verificar-certificado/{codigo}', [VerificacionCertificadoController::class, 'verificar'])->name('verificar.certificado');
 
+// RUTA TEMPORAL PARA EJECUTAR MIGRACIONES DE PERMISOS EN LA NUBE (Borrar después de usar)
+Route::get('/ejecutar-migraciones-permisos', function () {
+    \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+    return nl2br(\Illuminate\Support\Facades\Artisan::output());
+});
+
 Route::get('/', function () {
     if (auth()->check()) {
         return redirect()->route('dashboard');
