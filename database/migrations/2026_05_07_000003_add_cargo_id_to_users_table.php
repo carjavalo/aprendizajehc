@@ -11,7 +11,8 @@ return new class extends Migration
         Schema::table('users', function (Blueprint $table) {
             if (!Schema::hasColumn('users', 'cargo_id')) {
                 $table->unsignedBigInteger('cargo_id')->nullable()->after('vinculacion_contrato_id');
-                $table->foreign('cargo_id')->references('id')->on('cargos')->onDelete('set null');
+                // Se remueve la llave foránea para evitar error 150 en servidor de producción
+                // $table->foreign('cargo_id')->references('id')->on('cargos')->onDelete('set null');
             }
         });
     }
@@ -20,7 +21,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             if (Schema::hasColumn('users', 'cargo_id')) {
-                $table->dropForeign(['cargo_id']);
+                // $table->dropForeign(['cargo_id']);
                 $table->dropColumn('cargo_id');
             }
         });
