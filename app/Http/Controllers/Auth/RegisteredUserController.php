@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Actividad;
+use App\Models\Cargo;
 use App\Models\ServicioArea;
 use App\Models\VinculacionContrato;
 use App\Models\Sede;
@@ -25,12 +27,16 @@ class RegisteredUserController extends Controller
         $availableDocumentTypes = User::getAvailableDocumentTypes();
         $serviciosAreas = ServicioArea::all();
         $vinculacionesContrato = VinculacionContrato::all();
+        $cargos = Cargo::orderBy('nombre')->get();
+        $actividadesReg = Actividad::orderBy('nombre')->get();
         $sedes = Sede::all();
         
         return view('adminlte::auth.register', compact(
             'availableDocumentTypes',
             'serviciosAreas',
             'vinculacionesContrato',
+            'cargos',
+            'actividadesReg',
             'sedes'
         ));
     }
@@ -52,6 +58,8 @@ class RegisteredUserController extends Controller
             'numero_documento' => ['required', 'string', 'max:20', 'unique:users'],
             'servicio_area_id' => ['required', 'exists:servicios_areas,id'],
             'vinculacion_contrato_id' => ['required', 'exists:vinculacion_contrato,id'],
+            'cargo_id' => ['nullable', 'exists:cargos,id'],
+            'actividad_id' => ['nullable', 'exists:actividades,id'],
             'sede_id' => ['required', 'exists:sedes,id'],
             'phone' => ['nullable', 'string', 'max:20'],
         ]);
@@ -67,6 +75,8 @@ class RegisteredUserController extends Controller
             'numero_documento' => $request->numero_documento,
             'servicio_area_id' => $request->servicio_area_id,
             'vinculacion_contrato_id' => $request->vinculacion_contrato_id,
+            'cargo_id' => $request->cargo_id ?: null,
+            'actividad_id' => $request->actividad_id ?: null,
             'sede_id' => $request->sede_id,
             'phone' => $request->phone,
         ]);

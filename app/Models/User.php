@@ -31,6 +31,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'numero_documento',
         'servicio_area_id',
         'vinculacion_contrato_id',
+        'cargo_id',
+        'actividad_id',
         'sede_id',
         'email_verified_at',
     ];
@@ -184,6 +186,22 @@ class User extends Authenticatable implements MustVerifyEmail
     public function vinculacionContrato()
     {
         return $this->belongsTo(\App\Models\VinculacionContrato::class, 'vinculacion_contrato_id');
+    }
+
+    /**
+     * Relación con Cargo/Especialidad
+     */
+    public function cargo()
+    {
+        return $this->belongsTo(\App\Models\Cargo::class, 'cargo_id');
+    }
+
+    /**
+     * Relación con Actividad
+     */
+    public function actividad()
+    {
+        return $this->belongsTo(\App\Models\Actividad::class, 'actividad_id');
     }
 
     /**

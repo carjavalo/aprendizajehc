@@ -25,6 +25,10 @@
 @stop
 
 @section('content')
+@php
+    // Restricciones anti-descarga solo aplican a estudiantes.
+    $esEstudiante = (auth()->check() && auth()->user()->role === 'Estudiantes');
+@endphp
 <div class="container-fluid">
     <div class="row">
         <!-- Panel Lateral - Lista de Materiales -->
@@ -174,26 +178,60 @@
                             @php $firstMaterial = $materiales->first(); @endphp
                             
                             @if($firstMaterial->tipo === 'video')
+                                @php
+                                    $videoExt = strtolower($firstMaterial->archivo_extension ?? pathinfo($firstMaterial->archivo_path ?? '', PATHINFO_EXTENSION));
+                                    $videoMime = match($videoExt) {
+                                        'webm' => 'video/webm',
+                                        'ogv', 'ogg' => 'video/ogg',
+                                        'mov' => 'video/quicktime',
+                                        'avi' => 'video/x-msvideo',
+                                        default => 'video/mp4',
+                                    };
+                                @endphp
                                 <!-- Reproductor de Video -->
-                                <video id="video-player" class="w-100" controls style="max-height: 600px;">
-                                    <source src="{{ $firstMaterial->archivo_url }}" type="video/mp4">
-                                    Tu navegador no soporta la reproducción de videos.
-                                </video>
+                                <div class="w-100" @if($esEstudiante) oncontextmenu="return false;" @endif>
+                                    <video id="video-player" class="w-100" controls
+                                        @if($esEstudiante) controlsList="nodownload noremoteplayback" disablePictureInPicture @endif
+                                        playsinline style="max-height: 600px;">
+                                        <source src="{{ $firstMaterial->archivo_url }}" type="{{ $videoMime }}">
+                                        Tu navegador no soporta la reproducción de videos.
+                                    </video>
+                                </div>
                             @elseif($firstMaterial->tipo === 'imagen')
                                 <!-- Visor de Imágenes -->
-                                <div class="text-center p-4">
-                                    <img id="image-viewer" src="{{ $firstMaterial->archivo_url }}" 
-                                         alt="{{ $firstMaterial->titulo }}" 
-                                         class="img-fluid" 
-                                         style="max-height: 600px; object-fit: contain;">
+                                <div class="text-center p-4 position-relative" @if($esEstudiante) oncontextmenu="return false;" @endif>
+                                    <img id="image-viewer" src="{{ $firstMaterial->archivo_url }}"
+                                         alt="{{ $firstMaterial->titulo }}"
+                                         class="img-fluid"
+                                         @if($esEstudiante) draggable="false" style="max-height: 600px; object-fit: contain; -webkit-user-select: none; user-select: none; pointer-events: none;" @else style="max-height: 600px; object-fit: contain;" @endif>
                                 </div>
                             @elseif($firstMaterial->tipo === 'documento')
-                                <!-- Visor de Documentos PDF -->
-                                <iframe id="document-viewer" 
-                                        src="{{ $firstMaterial->archivo_url }}" 
-                                        class="w-100" 
-                                        style="height: 600px; border: none;">
-                                </iframe>
+                                @php
+                                    $ext = strtolower($firstMaterial->archivo_extension ?? pathinfo($firstMaterial->archivo_path ?? '', PATHINFO_EXTENSION));
+                                @endphp
+                                @if($ext === 'pdf')
+                                    @if($esEstudiante)
+                                        <!-- Visor de PDF para estudiantes (PDF.js, sin opción de descarga) -->
+                                        <div class="pdfjs-container w-100"
+                                             oncontextmenu="return false;"
+                                             data-pdf-url="{{ $firstMaterial->archivo_url }}"
+                                             style="position: relative; height: 600px; overflow: auto; background:#525659; padding: 12px;"></div>
+                                    @else
+                                        <!-- Visor de PDF para roles administrativos -->
+                                        <iframe id="document-viewer"
+                                                src="{{ $firstMaterial->archivo_url }}"
+                                                class="w-100"
+                                                style="height: 600px; border: none;">
+                                        </iframe>
+                                    @endif
+                                @else
+                                    <!-- Formato no permitido para documento -->
+                                    <div class="text-center text-white p-5 w-100">
+                                        <i class="fas fa-exclamation-triangle fa-5x mb-3 text-warning"></i>
+                                        <h4>Formato no soportado</h4>
+                                        <p class="text-light">Los materiales de tipo <strong>Documento</strong> deben estar en formato PDF para poder visualizarse dentro del aula virtual.</p>
+                                    </div>
+                                @endif
                             @else
                                 <!-- Enlace de Descarga -->
                                 <div class="text-center text-white p-5">
@@ -419,14 +457,76 @@
 @stop
 
 @section('js')
+@if($esEstudiante)
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+    if (window['pdfjsLib']) {
+        window['pdfjsLib'].GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+    }
+</script>
+@endif
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <script>
 $(document).ready(function() {
     let currentMaterialId = @if($materiales->isNotEmpty()) {{ $materiales->first()->id }} @else null @endif;
     let materiales = {!! json_encode($materiales, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+    const ES_ESTUDIANTE = @json($esEstudiante);
     let currentIndex = 0;
     let materialesVistos = {!! json_encode($materialesVistos, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) !!};
+
+    // Renderiza cualquier contenedor .pdfjs-container usando PDF.js (estudiantes).
+    // Dibuja cada página en un <canvas> para impedir descarga/impresión nativa del PDF.
+    function renderPdfJsContainers() {
+        if (typeof pdfjsLib === 'undefined') return;
+        document.querySelectorAll('.pdfjs-container:not([data-rendered="1"])').forEach(function(container) {
+            const url = container.getAttribute('data-pdf-url');
+            if (!url) return;
+            container.setAttribute('data-rendered', '1');
+            container.innerHTML = '<div class="text-center text-light p-3"><i class="fas fa-spinner fa-spin"></i> Cargando documento...</div>';
+
+            pdfjsLib.getDocument({ url: url, withCredentials: true }).promise.then(function(pdf) {
+                container.innerHTML = '';
+                const containerWidth = container.clientWidth - 24; // padding
+                const renderPage = function(pageNum) {
+                    return pdf.getPage(pageNum).then(function(page) {
+                        const baseViewport = page.getViewport({ scale: 1 });
+                        const scale = containerWidth / baseViewport.width;
+                        const viewport = page.getViewport({ scale: scale });
+
+                        const canvas = document.createElement('canvas');
+                        canvas.className = 'pdfjs-page mb-3 shadow';
+                        canvas.style.display = 'block';
+                        canvas.style.margin = '0 auto 12px';
+                        canvas.style.userSelect = 'none';
+                        canvas.style.pointerEvents = 'none';
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+
+                        // Wrapper para evitar arrastre de la imagen del canvas
+                        const wrap = document.createElement('div');
+                        wrap.style.position = 'relative';
+                        wrap.oncontextmenu = function() { return false; };
+                        wrap.appendChild(canvas);
+                        container.appendChild(wrap);
+
+                        return page.render({ canvasContext: canvas.getContext('2d'), viewport: viewport }).promise;
+                    });
+                };
+
+                let chain = Promise.resolve();
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    (function(n) { chain = chain.then(function() { return renderPage(n); }); })(i);
+                }
+            }).catch(function(err) {
+                console.error('Error PDF.js:', err);
+                container.innerHTML = '<div class="text-center text-warning p-4"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><p>No fue posible cargar el documento.</p></div>';
+            });
+        });
+    }
+
+    // Renderizar PDF.js para el material inicial
+    renderPdfJsContainers();
 
     // Función para cargar un material
     function loadMaterial(material, index) {
@@ -447,34 +547,79 @@ $(document).ready(function() {
         
         // Cargar contenido según el tipo
         switch(material.tipo) {
-            case 'video':
+            case 'video': {
+                let vext = (material.archivo_extension || '').toLowerCase();
+                if (!vext && material.archivo_path) {
+                    const m = String(material.archivo_path).match(/\.([a-z0-9]+)$/i);
+                    vext = m ? m[1].toLowerCase() : '';
+                }
+                const mimeMap = { webm: 'video/webm', ogv: 'video/ogg', ogg: 'video/ogg', mov: 'video/quicktime', avi: 'video/x-msvideo' };
+                const vmime = mimeMap[vext] || 'video/mp4';
+                const videoAttrs = ES_ESTUDIANTE ? 'controlsList="nodownload noremoteplayback" disablePictureInPicture' : '';
+                const ctxAttr = ES_ESTUDIANTE ? 'oncontextmenu="return false;"' : '';
                 viewer.html(`
-                    <video id="video-player" class="w-100" controls style="max-height: 600px;">
-                        <source src="${material.archivo_url}" type="video/mp4">
-                        Tu navegador no soporta la reproducción de videos.
-                    </video>
-                `);
-                break;
-                
-            case 'imagen':
-                viewer.html(`
-                    <div class="text-center p-4 w-100">
-                        <img src="${material.archivo_url}" 
-                             alt="${material.titulo}" 
-                             class="img-fluid" 
-                             style="max-height: 600px; object-fit: contain;">
+                    <div class="w-100" ${ctxAttr}>
+                        <video id="video-player" class="w-100" controls ${videoAttrs} playsinline style="max-height: 600px;">
+                            <source src="${material.archivo_url}" type="${vmime}">
+                            Tu navegador no soporta la reproducción de videos.
+                        </video>
                     </div>
                 `);
                 break;
+            }
                 
-            case 'documento':
+            case 'imagen': {
+                const imgStyle = ES_ESTUDIANTE
+                    ? 'max-height: 600px; object-fit: contain; -webkit-user-select: none; user-select: none; pointer-events: none;'
+                    : 'max-height: 600px; object-fit: contain;';
+                const imgDraggable = ES_ESTUDIANTE ? 'draggable="false"' : '';
+                const ctxAttr = ES_ESTUDIANTE ? 'oncontextmenu="return false;"' : '';
                 viewer.html(`
-                    <iframe src="${material.archivo_url}" 
-                            class="w-100" 
-                            style="height: 600px; border: none;">
-                    </iframe>
+                    <div class="text-center p-4 w-100" ${ctxAttr}>
+                        <img src="${material.archivo_url}"
+                             alt="${material.titulo}"
+                             class="img-fluid"
+                             ${imgDraggable}
+                             style="${imgStyle}">
+                    </div>
                 `);
                 break;
+            }
+                
+            case 'documento': {
+                let ext = (material.archivo_extension || '').toLowerCase();
+                if (!ext && material.archivo_path) {
+                    let m = String(material.archivo_path).match(/\.([a-z0-9]+)$/i);
+                    ext = m ? m[1].toLowerCase() : '';
+                }
+                if (ext === 'pdf') {
+                    if (ES_ESTUDIANTE) {
+                        viewer.html(`
+                            <div class="pdfjs-container w-100"
+                                 oncontextmenu="return false;"
+                                 data-pdf-url="${material.archivo_url}"
+                                 style="position: relative; height: 600px; overflow: auto; background:#525659; padding: 12px;"></div>
+                        `);
+                        renderPdfJsContainers();
+                    } else {
+                        viewer.html(`
+                            <iframe src="${material.archivo_url}"
+                                    class="w-100"
+                                    style="height: 600px; border: none;">
+                            </iframe>
+                        `);
+                    }
+                } else {
+                    viewer.html(`
+                        <div class="text-center text-white p-5 w-100">
+                            <i class="fas fa-exclamation-triangle fa-5x mb-3 text-warning"></i>
+                            <h4>Formato no soportado</h4>
+                            <p class="text-light">Los materiales de tipo <strong>Documento</strong> deben estar en formato PDF para poder visualizarse dentro del aula virtual.</p>
+                        </div>
+                    `);
+                }
+                break;
+            }
                 
             default:
                 viewer.html(`

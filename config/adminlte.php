@@ -369,6 +369,13 @@ return [
             'can' => 'menu.configuracion',
             'submenu' => [
                 [
+                    'text'   => 'Gestión de Actividades',
+                    'icon'   => 'fas fa-fw fa-tasks',
+                    'url'    => 'configuracion/actividades',
+                    'active' => ['configuracion/actividades', 'configuracion/actividades/*'],
+                    'can'    => 'actividades_conf.view',
+                ],
+                [
                     'text' => 'Gestión de Usuarios',
                     'icon' => 'fas fa-fw fa-users',
                     'can' => 'users.view',
@@ -395,6 +402,13 @@ return [
                             'can' => 'permissions.manage',
                         ],
                     ],
+                ],
+                [
+                    'text' => 'Gestión Cargo/Especialidad',
+                    'icon' => 'fas fa-fw fa-briefcase-medical',
+                    'url'  => 'configuracion/cargos',
+                    'active' => ['configuracion/cargos', 'configuracion/cargos/*'],
+                    'can' => 'cargos.view',
                 ],
                 [
                     'text' => 'Gestión de Componentes',

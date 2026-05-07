@@ -132,8 +132,7 @@
                 <div class="card-body">
                     <h6><i class="fas fa-file-upload"></i> Tipos de archivo permitidos:</h6>
                     <ul class="list-unstyled">
-                        <li><i class="fas fa-file-pdf text-danger"></i> PDF</li>
-                        <li><i class="fas fa-file-word text-primary"></i> Word (DOC, DOCX)</li>
+                        <li><i class="fas fa-file-pdf text-danger"></i> PDF <small class="text-muted">(único permitido para tipo "Documento")</small></li>
                         <li><i class="fas fa-file-powerpoint text-warning"></i> PowerPoint (PPT, PPTX)</li>
                         <li><i class="fas fa-file-excel text-success"></i> Excel (XLS, XLSX)</li>
                         <li><i class="fas fa-image text-info"></i> Imágenes (JPG, PNG, GIF)</li>
@@ -251,7 +250,7 @@
                                                         <label class="custom-file-label" for="archivo">Seleccionar archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
-                                                    <small class="form-text text-muted">Máximo 10MB. Formatos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, MP4, AVI, MOV</small>
+                                                    <small class="form-text text-muted">Máximo 10MB. Formatos: PDF, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, MP4, AVI, MOV. <strong>Tipo "Documento": solo PDF.</strong></small>
                                                 </div>
                                             </div>
                                             <div class="tab-pane" id="url-tab">

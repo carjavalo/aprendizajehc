@@ -714,6 +714,36 @@
                                     </div>
 
                                     <div class="mb-3">
+                                        <label for="cargo_id" class="form-label">Cargo/Especialidad</label>
+                                        <select class="form-control @error('cargo_id') is-invalid @enderror" id="cargo_id" name="cargo_id">
+                                            <option value="">Seleccione Cargo/Especialidad</option>
+                                            @foreach(\App\Models\Cargo::orderBy('nombre')->get() as $cargo)
+                                                <option value="{{ $cargo->id }}" {{ old('cargo_id') == $cargo->id ? 'selected' : '' }}>{{ $cargo->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('cargo_id')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="actividad_id" class="form-label">Actividad</label>
+                                        <select class="form-control @error('actividad_id') is-invalid @enderror" id="actividad_id" name="actividad_id">
+                                            <option value="">Seleccione Actividad</option>
+                                            @foreach(\App\Models\Actividad::orderBy('nombre')->get() as $actividad)
+                                                <option value="{{ $actividad->id }}" {{ old('actividad_id') == $actividad->id ? 'selected' : '' }}>{{ $actividad->nombre }}</option>
+                                            @endforeach
+                                        </select>
+                                        @error('actividad_id')
+                                            <span class="invalid-feedback" role="alert">
+                                                <strong>{{ $message }}</strong>
+                                            </span>
+                                        @enderror
+                                    </div>
+
+                                    <div class="mb-3">
                                         <label for="sede_id" class="form-label">Sede</label>
                                         <select class="form-control @error('sede_id') is-invalid @enderror" id="sede_id" name="sede_id" required>
                                             <option value="">Seleccione Sede</option>

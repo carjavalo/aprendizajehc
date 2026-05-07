@@ -12,6 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -338,6 +339,59 @@ class AcademicoController extends Controller
         return view('academico.curso.aula-virtual', compact(
             'curso', 'materiales', 'resumen', 'progreso', 'materialesVistos', 'actividadesCompletadas'
         ));
+    }
+
+    /**
+     * Servir/transmitir el archivo de un material a través del disco "public",
+     * sin depender del enlace simbólico public/storage. Permite visualizar
+     * documentos (PDF, imágenes, videos) en el aula virtual.
+     */
+    public function servirArchivoMaterial(CursoMaterial $material)
+    {
+        $user = Auth::user();
+        if (!$user) {
+            abort(401);
+        }
+
+        $curso = $material->curso;
+        if (!$curso) {
+            abort(404);
+        }
+
+        $userRole = $user->role;
+        $rolesVerTodos = ['Super Admin', 'Admin', 'Administrador', 'Operador'];
+        $esInstructor = $curso->instructor_id == $user->id;
+
+        if (!in_array($userRole, $rolesVerTodos) && !$esInstructor && !$curso->tieneEstudiante($user->id)) {
+            abort(403, 'No tienes acceso a este material');
+        }
+
+        if (!$material->archivo_path || !Storage::disk('public')->exists($material->archivo_path)) {
+            abort(404, 'Archivo no disponible');
+        }
+
+        $nombre = $material->archivo_nombre ?: basename($material->archivo_path);
+        $mime = Storage::disk('public')->mimeType($material->archivo_path) ?: 'application/octet-stream';
+
+        $esEstudiante = ($user->role === 'Estudiantes');
+
+        $headers = [
+            'Content-Type' => $mime,
+            'Content-Disposition' => 'inline; filename="' . addslashes($nombre) . '"',
+            'X-Content-Type-Options' => 'nosniff',
+            'X-Frame-Options' => 'SAMEORIGIN',
+        ];
+
+        if ($esEstudiante) {
+            // Para estudiantes evitamos cualquier persistencia/caché que facilite descarga.
+            $headers['Cache-Control'] = 'private, no-store, no-cache, must-revalidate, max-age=0';
+            $headers['Pragma'] = 'no-cache';
+        }
+
+        return response()->file(
+            Storage::disk('public')->path($material->archivo_path),
+            $headers
+        );
     }
 
     /**

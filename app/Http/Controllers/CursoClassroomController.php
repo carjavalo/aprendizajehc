@@ -123,12 +123,24 @@ class CursoClassroomController extends Controller
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'tipo' => 'required|in:archivo,video,imagen,documento',
-            'archivo' => 'required_without:url_externa|file|max:10240|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,mp4,avi,mov,txt,zip,rar',
+            'archivo' => 'required_without:url_externa|file|max:10240|mimes:pdf,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,mp4,avi,mov,txt,zip,rar',
             'url_externa' => 'nullable|url', // Cambiado a nullable en lugar de required_without
             'orden' => 'nullable|integer|min:0',
             'porcentaje_curso' => 'nullable|numeric|min:0|max:100',
             'nota_minima_aprobacion' => 'nullable|numeric|min:0|max:5',
         ]);
+
+        // Restricción adicional: cuando el material es de tipo "documento",
+        // solo se aceptan PDF para que pueda ser visualizado dentro del aula
+        // virtual sin permitir descarga del archivo original.
+        $validator->after(function ($v) use ($request) {
+            if ($request->input('tipo') === 'documento' && $request->hasFile('archivo')) {
+                $ext = strtolower($request->file('archivo')->getClientOriginalExtension());
+                if ($ext !== 'pdf') {
+                    $v->errors()->add('archivo', 'Para materiales de tipo "Documento" solo se permiten archivos PDF.');
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([
@@ -333,10 +345,20 @@ class CursoClassroomController extends Controller
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'tipo' => 'required|in:archivo,video,imagen,documento',
-            'archivo' => 'nullable|file|max:10240|mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,mp4,avi,mov,txt,zip,rar',
+            'archivo' => 'nullable|file|max:10240|mimes:pdf,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,mp4,avi,mov,txt,zip,rar',
             'orden' => 'nullable|integer|min:0',
             'porcentaje_curso' => 'nullable|numeric|min:0|max:100',
         ]);
+
+        // Restricción adicional para tipo documento: solo PDF.
+        $validator->after(function ($v) use ($request) {
+            if ($request->input('tipo') === 'documento' && $request->hasFile('archivo')) {
+                $ext = strtolower($request->file('archivo')->getClientOriginalExtension());
+                if ($ext !== 'pdf') {
+                    $v->errors()->add('archivo', 'Para materiales de tipo "Documento" solo se permiten archivos PDF.');
+                }
+            }
+        });
 
         if ($validator->fails()) {
             return response()->json([

@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\CargoController;
+use App\Http\Controllers\ActividadConfController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserLoginController;
 use App\Http\Controllers\UserOperationController;
@@ -231,6 +233,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Acceso a curso específico para estudiante
         Route::get('curso/{curso}', [AcademicoController::class, 'verCurso'])->name('curso.ver');
         Route::get('curso/{curso}/aula-virtual', [AcademicoController::class, 'aulaVirtual'])->name('curso.aula-virtual');
+        Route::get('material/{material}/archivo', [AcademicoController::class, 'servirArchivoMaterial'])->name('material.archivo');
         Route::get('curso/{curso}/materiales', [AcademicoController::class, 'verMateriales'])->name('curso.materiales');
         Route::get('curso/{curso}/actividades', [AcademicoController::class, 'verActividades'])->name('curso.actividades');
         Route::get('curso/{curso}/evaluaciones', [AcademicoController::class, 'verEvaluaciones'])->name('curso.evaluaciones');
@@ -282,6 +285,28 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::resource('sedes', SedeController::class);
         });
 
+        // Rutas de Gestión de Actividades
+        Route::prefix('actividades')->name('actividades.')->group(function () {
+            Route::get('data', [ActividadConfController::class, 'getData'])->name('data')->middleware('check.permission:actividades_conf.view');
+            Route::get('/', [ActividadConfController::class, 'index'])->name('index')->middleware('check.permission:actividades_conf.view');
+            Route::post('/', [ActividadConfController::class, 'store'])->name('store')->middleware('check.permission:actividades_conf.create');
+            Route::get('{actividad}', [ActividadConfController::class, 'show'])->name('show')->middleware('check.permission:actividades_conf.view');
+            Route::get('{actividad}/edit', [ActividadConfController::class, 'edit'])->name('edit')->middleware('check.permission:actividades_conf.view');
+            Route::put('{actividad}', [ActividadConfController::class, 'update'])->name('update')->middleware('check.permission:actividades_conf.edit');
+            Route::delete('{actividad}', [ActividadConfController::class, 'destroy'])->name('destroy')->middleware('check.permission:actividades_conf.delete');
+        });
+
+        // Rutas de Gestión Cargo/Especialidad
+        Route::prefix('cargos')->name('cargos.')->group(function () {
+            Route::get('data', [CargoController::class, 'getData'])->name('data')->middleware('check.permission:cargos.view');
+            Route::get('/', [CargoController::class, 'index'])->name('index')->middleware('check.permission:cargos.view');
+            Route::post('/', [CargoController::class, 'store'])->name('store')->middleware('check.permission:cargos.create');
+            Route::get('{cargo}', [CargoController::class, 'show'])->name('show')->middleware('check.permission:cargos.view');
+            Route::get('{cargo}/edit', [CargoController::class, 'edit'])->name('edit')->middleware('check.permission:cargos.view');
+            Route::put('{cargo}', [CargoController::class, 'update'])->name('update')->middleware('check.permission:cargos.edit');
+            Route::delete('{cargo}', [CargoController::class, 'destroy'])->name('destroy')->middleware('check.permission:cargos.delete');
+        });
+
         // Rutas de Editor de Certificados
         Route::prefix('editor-certificados')->name('editor-certificados.')->group(function () {
             Route::get('/', [\App\Http\Controllers\CertificadoPlantillaController::class, 'index'])->name('index');
@@ -311,6 +336,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::prefix('reportes')->name('reportes.')->group(function () {
             Route::get('/', [\App\Http\Controllers\ReporteEstudiantesController::class, 'index'])->middleware('check.permission:reportes.view')->name('index');
             Route::get('/data', [\App\Http\Controllers\ReporteEstudiantesController::class, 'getData'])->middleware('check.permission:reportes.view')->name('data');
+            Route::get('/export', [\App\Http\Controllers\ReporteEstudiantesController::class, 'export'])->middleware('check.permission:reportes.view')->name('export');
             Route::get('/{id}', [\App\Http\Controllers\ReporteEstudiantesController::class, 'show'])->middleware('check.permission:reportes.view')->name('show');
             Route::get('/{id}/edit', [\App\Http\Controllers\ReporteEstudiantesController::class, 'edit'])->middleware('check.permission:reportes.edit')->name('edit');
             Route::put('/{id}', [\App\Http\Controllers\ReporteEstudiantesController::class, 'update'])->middleware('check.permission:reportes.edit')->name('update');

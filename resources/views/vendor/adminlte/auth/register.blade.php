@@ -218,6 +218,54 @@
             @enderror
         </div>
 
+        {{-- Cargo/Especialidad field --}}
+        <div class="input-group mb-3">
+            <select name="cargo_id" class="form-control @error('cargo_id') is-invalid @enderror">
+                <option value="">Seleccione Cargo/Especialidad</option>
+                @foreach($cargos as $cargo)
+                    <option value="{{ $cargo->id }}" {{ old('cargo_id') == $cargo->id ? 'selected' : '' }}>
+                        {{ $cargo->nombre }}
+                    </option>
+                @endforeach
+            </select>
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-briefcase-medical {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                </div>
+            </div>
+
+            @error('cargo_id')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+        </div>
+
+        {{-- Actividad field --}}
+        <div class="input-group mb-3">
+            <select name="actividad_id" class="form-control @error('actividad_id') is-invalid @enderror">
+                <option value="">Seleccione Actividad</option>
+                @foreach($actividadesReg as $actividadReg)
+                    <option value="{{ $actividadReg->id }}" {{ old('actividad_id') == $actividadReg->id ? 'selected' : '' }}>
+                        {{ $actividadReg->nombre }}
+                    </option>
+                @endforeach
+            </select>
+
+            <div class="input-group-append">
+                <div class="input-group-text">
+                    <span class="fas fa-tasks {{ config('adminlte.classes_auth_icon', '') }}"></span>
+                </div>
+            </div>
+
+            @error('actividad_id')
+                <span class="invalid-feedback" role="alert">
+                    <strong>{{ $message }}</strong>
+                </span>
+            @enderror
+        </div>
+
         {{-- Sede field --}}
         <div class="input-group mb-3">
             <select name="sede_id" class="form-control @error('sede_id') is-invalid @enderror">

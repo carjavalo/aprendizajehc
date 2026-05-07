@@ -39,6 +39,13 @@ class CursoMaterial extends Model
     ];
 
     /**
+     * Accessors a incluir en la serialización (toArray/JSON).
+     */
+    protected $appends = [
+        'archivo_url',
+    ];
+
+    /**
      * The attributes that should be cast.
      */
     protected $casts = [
@@ -83,10 +90,22 @@ class CursoMaterial extends Model
      */
     public function getArchivoUrlAttribute(): ?string
     {
-        if ($this->archivo_path && file_exists(public_path('storage/' . $this->archivo_path))) {
-            return asset('storage/' . $this->archivo_path);
+        if ($this->archivo_path) {
+            // Preferir el enlace simbólico público si existe
+            if (file_exists(public_path('storage/' . $this->archivo_path))) {
+                return asset('storage/' . $this->archivo_path);
+            }
+
+            // Fallback: servir mediante una ruta del controlador (no requiere symlink)
+            try {
+                if (\Illuminate\Support\Facades\Storage::disk('public')->exists($this->archivo_path)) {
+                    return route('academico.material.archivo', $this->id);
+                }
+            } catch (\Throwable $e) {
+                // Ignorar y caer en el url_externa
+            }
         }
-        
+
         return $this->url_externa;
     }
 
