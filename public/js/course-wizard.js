@@ -1849,6 +1849,23 @@ function showActivityModal(activityType) {
             window.optionLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
             
             // Funciones para configuración del banco de preguntas anti-fraude
+            window.applyBankPointsVisibility = function() {
+                const enabled = document.getElementById('quiz-enable-bank')?.checked || false;
+                document.querySelectorAll('.quiz-question-points-group').forEach(g => {
+                    g.style.display = enabled ? 'none' : '';
+                });
+                const progressGroup = document.getElementById('quiz-points-progress')?.closest('.form-group');
+                if (progressGroup) progressGroup.style.display = enabled ? 'none' : '';
+                if (enabled) {
+                    const perAttempt = parseInt(document.getElementById('quiz-questions-per-attempt')?.value) || 1;
+                    const equalShare = perAttempt > 0 ? (100 / perAttempt) : 0;
+                    document.querySelectorAll('.question-points-input').forEach(input => {
+                        input.value = equalShare.toFixed(2);
+                    });
+                    if (typeof actualizarPuntosDisponiblesQuiz === 'function') actualizarPuntosDisponiblesQuiz();
+                }
+            };
+
             window.toggleBankConfig = function() {
                 const enabled = document.getElementById('quiz-enable-bank').checked;
                 document.getElementById('quiz-bank-details').style.display = enabled ? 'block' : 'none';
@@ -1856,6 +1873,7 @@ function showActivityModal(activityType) {
                     document.getElementById('quiz-randomize-order').checked = true;
                     updateBankInfo();
                 }
+                window.applyBankPointsVisibility();
             };
             
             window.updateBankInfo = function() {
@@ -1867,11 +1885,15 @@ function showActivityModal(activityType) {
                         if (perAttempt >= totalQuestions) {
                             infoText.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle"></i> Debe ser menor que el total de preguntas (' + totalQuestions + '). Agrega más preguntas al banco.</span>';
                         } else {
-                            infoText.innerHTML = 'Se seleccionarán <strong>' + perAttempt + '</strong> de <strong>' + totalQuestions + '</strong> preguntas para cada estudiante.';
+                            infoText.innerHTML = 'Se seleccionarán <strong>' + perAttempt + '</strong> de <strong>' + totalQuestions + '</strong> preguntas para cada estudiante. El porcentaje de cada pregunta será <strong>' + (100 / perAttempt).toFixed(2) + '%</strong> (auto).';
                         }
                     } else {
                         infoText.innerHTML = 'Agrega preguntas al banco primero.';
                     }
+                }
+                // Si está activo, redistribuir puntos equitativamente
+                if (document.getElementById('quiz-enable-bank')?.checked) {
+                    window.applyBankPointsVisibility();
                 }
             };
             
@@ -2006,7 +2028,7 @@ function showActivityModal(activityType) {
                                 <label>Texto de la Pregunta *</label>
                                 <input type="text" class="form-control" id="question-text-${questionId}" placeholder="Escribe la pregunta aquí">
                             </div>
-                            <div class="form-group">
+                            <div class="form-group quiz-question-points-group">
                                 <label>Porcentaje de la Pregunta (%) <small class="text-muted">Suma máx: 100%</small></label>
                                 <input type="number" class="form-control question-points-input" id="question-points-${questionId}" 
                                        min="0.1" max="100" step="0.1" value="" placeholder="Ej: 20"
@@ -2039,6 +2061,7 @@ function showActivityModal(activityType) {
                 
                 // Actualizar info del banco de preguntas
                 if (typeof updateBankInfo === 'function') updateBankInfo();
+                if (typeof window.applyBankPointsVisibility === 'function') window.applyBankPointsVisibility();
             };
             
             // Función para calcular porcentaje total asignado del quiz
@@ -2166,12 +2189,22 @@ function showActivityModal(activityType) {
                     return false;
                 }
                 
+                // Pre-leer config de banco para decidir cómo manejar porcentajes
+                const _enableBankEarly = document.getElementById('quiz-enable-bank')?.checked || false;
+                const _perAttemptEarly = parseInt(document.getElementById('quiz-questions-per-attempt')?.value) || window.quizQuestions.length;
+                const _equalShare = (_enableBankEarly && _perAttemptEarly > 0) ? (100 / _perAttemptEarly) : null;
+                
                 const questions = [];
                 let totalQuestionPoints = 0;
                 
                 for (const questionId of window.quizQuestions) {
                     const questionText = document.getElementById(`question-text-${questionId}`).value;
-                    const questionPoints = document.getElementById(`question-points-${questionId}`).value;
+                    let questionPoints = document.getElementById(`question-points-${questionId}`).value;
+                    if (_enableBankEarly) {
+                        // Cuando el banco de preguntas está activo, el porcentaje se distribuye
+                        // equitativamente entre las preguntas por intento. El campo per-pregunta no aplica.
+                        questionPoints = _equalShare;
+                    }
                     
                     if (!questionText.trim()) {
                         Swal.showValidationMessage('Todas las preguntas deben tener texto');
@@ -2218,15 +2251,17 @@ function showActivityModal(activityType) {
                     
                     const puntosPregunta = parseFloat(questionPoints) || 0;
                     
-                    // Validar que el porcentaje de la pregunta esté entre 0.1 y 100
-                    if (puntosPregunta <= 0) {
-                        Swal.showValidationMessage('Cada pregunta debe tener un porcentaje mayor a 0%');
-                        return false;
-                    }
-                    
-                    if (puntosPregunta > 100) {
-                        Swal.showValidationMessage('El porcentaje de cada pregunta no puede exceder 100%');
-                        return false;
+                    if (!_enableBankEarly) {
+                        // Validar que el porcentaje de la pregunta esté entre 0.1 y 100
+                        if (puntosPregunta <= 0) {
+                            Swal.showValidationMessage('Cada pregunta debe tener un porcentaje mayor a 0%');
+                            return false;
+                        }
+                        
+                        if (puntosPregunta > 100) {
+                            Swal.showValidationMessage('El porcentaje de cada pregunta no puede exceder 100%');
+                            return false;
+                        }
                     }
                     
                     totalQuestionPoints += puntosPregunta;
@@ -2241,16 +2276,16 @@ function showActivityModal(activityType) {
                     });
                 }
                 
-                // Validar que la suma total no exceda 100%
-                if (totalQuestionPoints > 100) {
+                // Validar que la suma total no exceda 100% (solo si no hay banco; con banco se distribuye automáticamente)
+                if (!_enableBankEarly && totalQuestionPoints > 100) {
                     Swal.showValidationMessage('La suma de porcentajes de todas las preguntas no puede exceder 100% (actual: ' + totalQuestionPoints.toFixed(1) + '%)');
                     return false;
                 }
                 
                 // Recopilar configuración anti-fraude (banco de preguntas)
-                const enableBank = document.getElementById('quiz-enable-bank')?.checked || false;
+                const enableBank = _enableBankEarly;
                 const randomizeOrder = document.getElementById('quiz-randomize-order')?.checked || false;
-                const questionsPerAttempt = parseInt(document.getElementById('quiz-questions-per-attempt')?.value) || questions.length;
+                const questionsPerAttempt = _perAttemptEarly;
                 
                 // Validar banco de preguntas
                 if (enableBank && questionsPerAttempt >= questions.length) {
@@ -2266,7 +2301,7 @@ function showActivityModal(activityType) {
                 quizData = {
                     duration: parseInt(duration),
                     questions: questions,
-                    totalPoints: totalQuestionPoints,
+                    totalPoints: enableBank ? 100 : totalQuestionPoints,
                     quizConfig: {
                         enableQuestionBank: enableBank,
                         questionsPerAttempt: enableBank ? questionsPerAttempt : questions.length,

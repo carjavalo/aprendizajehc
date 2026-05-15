@@ -536,6 +536,24 @@
                         if (addBtn) addBtn.disabled = porcentajeUsado >= 100;
                     };
                     
+                    window.applyEditBankPointsVisibility = function() {
+                        const enabled = document.getElementById('edit-enable-bank')?.checked || false;
+                        document.querySelectorAll('.edit-question-points-group').forEach(g => {
+                            g.style.display = enabled ? 'none' : '';
+                        });
+                        const progressBar = document.getElementById('edit-quiz-points-progress');
+                        const progressGroup = progressBar ? progressBar.closest('.form-group') : null;
+                        if (progressGroup) progressGroup.style.display = enabled ? 'none' : '';
+                        if (enabled) {
+                            const perAttempt = parseInt(document.getElementById('edit-questions-per-attempt')?.value) || 1;
+                            const equalShare = perAttempt > 0 ? (100 / perAttempt) : 0;
+                            document.querySelectorAll('.edit-question-points-input').forEach(input => {
+                                input.value = equalShare.toFixed(2);
+                            });
+                            if (typeof actualizarPorcentajeDisponibleQuizEdit === 'function') actualizarPorcentajeDisponibleQuizEdit();
+                        }
+                    };
+
                     window.toggleEditBankConfig = function() {
                         const enabled = document.getElementById('edit-enable-bank').checked;
                         document.getElementById('edit-bank-details').style.display = enabled ? 'block' : 'none';
@@ -543,6 +561,7 @@
                             document.getElementById('edit-randomize-order').checked = true;
                             updateEditBankInfo();
                         }
+                        window.applyEditBankPointsVisibility();
                     };
                     
                     window.updateEditBankInfo = function() {
@@ -554,9 +573,12 @@
                                 if (perAttempt >= totalQuestions) {
                                     infoText.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle"></i> Debe ser menor que el total (' + totalQuestions + ').</span>';
                                 } else {
-                                    infoText.innerHTML = 'Se seleccionarán <strong>' + perAttempt + '</strong> de <strong>' + totalQuestions + '</strong> preguntas.';
+                                    infoText.innerHTML = 'Se seleccionarán <strong>' + perAttempt + '</strong> de <strong>' + totalQuestions + '</strong> preguntas. El porcentaje de cada pregunta será <strong>' + (100 / perAttempt).toFixed(2) + '%</strong> (auto).';
                                 }
                             }
+                        }
+                        if (document.getElementById('edit-enable-bank')?.checked) {
+                            window.applyEditBankPointsVisibility();
                         }
                     };
 
@@ -600,12 +622,22 @@
                         const questions = [];
                         let totalQuestionPoints = 0;
                         
+                        const _editEnableBankEarly = document.getElementById('edit-enable-bank')?.checked || false;
+                        const _editPerAttemptEarly = parseInt(document.getElementById('edit-questions-per-attempt')?.value) || window.editQuestions.length;
+                        const _editEqualShare = (_editEnableBankEarly && _editPerAttemptEarly > 0) ? (100 / _editPerAttemptEarly) : null;
+                        
                         for (const qId of window.editQuestions) {
                             const qText = document.getElementById(`edit-question-text-${qId}`).value;
-                            const qPoints = parseFloat(document.getElementById(`edit-question-points-${qId}`).value) || 0;
+                            let qPoints = parseFloat(document.getElementById(`edit-question-points-${qId}`).value) || 0;
+                            if (_editEnableBankEarly) {
+                                // Banco activo: porcentaje por pregunta = 100 / preguntas por intento
+                                qPoints = _editEqualShare;
+                            }
                             if (!qText.trim()) { Swal.showValidationMessage('Todas las preguntas deben tener texto'); return false; }
-                            if (qPoints <= 0) { Swal.showValidationMessage('Cada pregunta debe tener un porcentaje mayor a 0%'); return false; }
-                            if (qPoints > 100) { Swal.showValidationMessage('El porcentaje de cada pregunta no puede exceder 100%'); return false; }
+                            if (!_editEnableBankEarly) {
+                                if (qPoints <= 0) { Swal.showValidationMessage('Cada pregunta debe tener un porcentaje mayor a 0%'); return false; }
+                                if (qPoints > 100) { Swal.showValidationMessage('El porcentaje de cada pregunta no puede exceder 100%'); return false; }
+                            }
                             
                             const optContainer = document.getElementById(`edit-options-container-${qId}`);
                             const optRows = optContainer.querySelectorAll('.option-row');
@@ -627,14 +659,14 @@
                             questions.push({ id: qId, text: qText, points: qPoints, options, correctAnswers, isMultipleChoice: correctAnswers.length > 1 });
                         }
                         
-                        if (totalQuestionPoints > 100) {
+                        if (!_editEnableBankEarly && totalQuestionPoints > 100) {
                             Swal.showValidationMessage('La suma de porcentajes no puede exceder 100% (actual: ' + totalQuestionPoints.toFixed(1) + '%)');
                             return false;
                         }
                         
-                        const editEnableBank = document.getElementById('edit-enable-bank')?.checked || false;
+                        const editEnableBank = _editEnableBankEarly;
                         const editRandomizeOrder = document.getElementById('edit-randomize-order')?.checked || false;
-                        const editQuestionsPerAttempt = parseInt(document.getElementById('edit-questions-per-attempt')?.value) || questions.length;
+                        const editQuestionsPerAttempt = _editPerAttemptEarly;
                         
                         if (editEnableBank && editQuestionsPerAttempt >= questions.length) {
                             Swal.showValidationMessage('Las preguntas por intento (' + editQuestionsPerAttempt + ') deben ser menos que el total del banco (' + questions.length + ').');
@@ -644,7 +676,7 @@
                         quizData = { 
                             duration: parseInt(duration), 
                             questions: questions,
-                            totalPoints: totalQuestionPoints,
+                            totalPoints: editEnableBank ? 100 : totalQuestionPoints,
                             quizConfig: {
                                 enableQuestionBank: editEnableBank,
                                 questionsPerAttempt: editEnableBank ? editQuestionsPerAttempt : questions.length,
@@ -885,7 +917,10 @@
                         <button type="button" class="btn btn-sm btn-danger" onclick="window.removeEditQuestion(${qId})"><i class="fas fa-trash"></i></button>
                     </div>
                     <input type="text" class="form-control mb-2" id="edit-question-text-${qId}" value="${String(question.text || '').replace(/"/g, '&quot;')}" placeholder="Texto de la pregunta">
-                    <input type="number" class="form-control mb-2" id="edit-question-points-${qId}" min="0" max="5" step="0.1" value="${question.points || 1}" placeholder="Puntos">
+                    <div class="edit-question-points-group mb-2">
+                        <input type="number" class="form-control edit-question-points-input" id="edit-question-points-${qId}" min="0" max="100" step="0.1" value="${question.points || 1}" placeholder="Porcentaje (%)" oninput="actualizarPorcentajeDisponibleQuizEdit()">
+                        <small class="form-text text-muted">Porcentaje de la pregunta (%). Disponible: <span class="edit-puntos-disponibles">0</span>%</small>
+                    </div>
                     <div id="edit-options-container-${qId}"></div>
                     <button type="button" class="btn btn-sm btn-outline-success" onclick="window.addEditQuestionOption(${qId})"><i class="fas fa-plus"></i> Opción</button>
                 </div>
@@ -899,6 +934,7 @@
                     window.addEditQuestionOptionWithData(qId, letter, question.options[letter], correctAnswers.includes(letter));
                 });
             }
+            if (typeof window.applyEditBankPointsVisibility === 'function') window.applyEditBankPointsVisibility();
         };
 
         window.addEditQuestion = function() {
@@ -913,7 +949,10 @@
                         <button type="button" class="btn btn-sm btn-danger" onclick="window.removeEditQuestion(${qId})"><i class="fas fa-trash"></i></button>
                     </div>
                     <input type="text" class="form-control mb-2" id="edit-question-text-${qId}" placeholder="Texto de la pregunta">
-                    <input type="number" class="form-control mb-2" id="edit-question-points-${qId}" min="0" max="5" step="0.1" value="1" placeholder="Puntos">
+                    <div class="edit-question-points-group mb-2">
+                        <input type="number" class="form-control edit-question-points-input" id="edit-question-points-${qId}" min="0" max="100" step="0.1" value="1" placeholder="Porcentaje (%)" oninput="actualizarPorcentajeDisponibleQuizEdit()">
+                        <small class="form-text text-muted">Porcentaje de la pregunta (%). Disponible: <span class="edit-puntos-disponibles">0</span>%</small>
+                    </div>
                     <div id="edit-options-container-${qId}"></div>
                     <button type="button" class="btn btn-sm btn-outline-success" onclick="window.addEditQuestionOption(${qId})"><i class="fas fa-plus"></i> Opción</button>
                 </div>
@@ -922,6 +961,8 @@
             window.editQuestions.push(qId);
             window.addEditQuestionOption(qId);
             window.addEditQuestionOption(qId);
+            if (typeof window.updateEditBankInfo === 'function') window.updateEditBankInfo();
+            if (typeof window.applyEditBankPointsVisibility === 'function') window.applyEditBankPointsVisibility();
         };
 
         window.removeEditQuestion = function(qId) {

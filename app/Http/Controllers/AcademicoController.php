@@ -699,16 +699,25 @@ class AcademicoController extends Controller
             }
 
             // Redistribuir porcentajes para que las preguntas activas totalicen 100%
-            $selectedSum = 0;
-            foreach ($selectedQuestions as $q) {
-                $selectedSum += floatval($q['points'] ?? 0);
-            }
-            if ($selectedSum > 0 && abs($selectedSum - $totalTarget) > 0.01) {
-                $factor = $totalTarget / $selectedSum;
+            // Si el banco de preguntas está activo, repartir equitativamente entre las preguntas servidas.
+            if ($enableBank && count($selectedQuestions) > 0) {
+                $equalShare = round($totalTarget / count($selectedQuestions), 4);
                 foreach ($selectedQuestions as &$q) {
-                    $q['points'] = round(floatval($q['points']) * $factor, 2);
+                    $q['points'] = $equalShare;
                 }
                 unset($q);
+            } else {
+                $selectedSum = 0;
+                foreach ($selectedQuestions as $q) {
+                    $selectedSum += floatval($q['points'] ?? 0);
+                }
+                if ($selectedSum > 0 && abs($selectedSum - $totalTarget) > 0.01) {
+                    $factor = $totalTarget / $selectedSum;
+                    foreach ($selectedQuestions as &$q) {
+                        $q['points'] = round(floatval($q['points']) * $factor, 2);
+                    }
+                    unset($q);
+                }
             }
 
             // Obtener IDs de preguntas seleccionadas
@@ -827,16 +836,25 @@ class AcademicoController extends Controller
             
             // Redistribuir porcentajes para que las preguntas activas totalicen 100%
             $totalTarget = floatval($quizData['totalPoints'] ?? 100);
-            $sumaSeleccionadas = 0;
-            foreach ($preguntas as $p) {
-                $sumaSeleccionadas += floatval($p['points'] ?? 0);
-            }
-            if ($sumaSeleccionadas > 0 && abs($sumaSeleccionadas - $totalTarget) > 0.01) {
-                $factor = $totalTarget / $sumaSeleccionadas;
+            if ($enableBank && count($preguntas) > 0) {
+                // Banco activo: repartir equitativamente
+                $equalShare = round($totalTarget / count($preguntas), 4);
                 foreach ($preguntas as &$p) {
-                    $p['points'] = round(floatval($p['points']) * $factor, 2);
+                    $p['points'] = $equalShare;
                 }
                 unset($p);
+            } else {
+                $sumaSeleccionadas = 0;
+                foreach ($preguntas as $p) {
+                    $sumaSeleccionadas += floatval($p['points'] ?? 0);
+                }
+                if ($sumaSeleccionadas > 0 && abs($sumaSeleccionadas - $totalTarget) > 0.01) {
+                    $factor = $totalTarget / $sumaSeleccionadas;
+                    foreach ($preguntas as &$p) {
+                        $p['points'] = round(floatval($p['points']) * $factor, 2);
+                    }
+                    unset($p);
+                }
             }
             
             // ========================================================
