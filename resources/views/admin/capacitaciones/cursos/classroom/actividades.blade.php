@@ -937,7 +937,7 @@ function editarActividadCompleta(actividadId, actividad) {
             <i class="fas fa-info-circle"></i> <strong>Nota máxima: 5.0</strong> — Cada pregunta tiene un <strong>porcentaje (%)</strong>. La suma de los porcentajes de todas las preguntas no puede exceder <strong>100%</strong>.<br>
             <small>La nota se calcula así: si una respuesta es correcta, su porcentaje se multiplica por 5. Si es incorrecta, por 0. Si hay varias respuestas correctas, el porcentaje se distribuye entre ellas.</small>
         </div>
-        <div class="form-group">
+        <div class="form-group" id="edit-quiz-points-progress-group">
             <label>Porcentaje total asignado:</label>
             <div class="progress" style="height: 25px;">
                 <div class="progress-bar bg-success" role="progressbar" id="edit-quiz-points-progress" style="width: 0%">0% / 100%</div>
@@ -1087,6 +1087,27 @@ function editarActividadCompleta(actividadId, actividad) {
             window.editOptionCounters = {};
             
             // Funciones para configuración del banco de preguntas
+            window.applyEditBankPointsVisibility = function() {
+                const enabled = document.getElementById('edit-enable-bank')?.checked || false;
+                const perAttempt = parseInt(document.getElementById('edit-questions-per-attempt')?.value) || 1;
+                const groups = document.querySelectorAll('.edit-question-points-group');
+                const progressGroup = document.getElementById('edit-quiz-points-progress-group');
+                if (enabled) {
+                    const equalShare = perAttempt > 0 ? (100 / perAttempt) : 0;
+                    groups.forEach(g => g.style.display = 'none');
+                    if (progressGroup) progressGroup.style.display = 'none';
+                    document.querySelectorAll('.edit-question-points-input').forEach(inp => {
+                        inp.value = equalShare.toFixed(4);
+                    });
+                } else {
+                    groups.forEach(g => g.style.display = '');
+                    if (progressGroup) progressGroup.style.display = '';
+                    if (typeof actualizarPorcentajeDisponibleQuizEdit === 'function') {
+                        actualizarPorcentajeDisponibleQuizEdit();
+                    }
+                }
+            };
+
             window.toggleEditBankConfig = function() {
                 const enabled = document.getElementById('edit-enable-bank').checked;
                 document.getElementById('edit-bank-details').style.display = enabled ? 'block' : 'none';
@@ -1094,6 +1115,7 @@ function editarActividadCompleta(actividadId, actividad) {
                     document.getElementById('edit-randomize-order').checked = true;
                     updateEditBankInfo();
                 }
+                applyEditBankPointsVisibility();
             };
             
             window.updateEditBankInfo = function() {
@@ -1105,12 +1127,14 @@ function editarActividadCompleta(actividadId, actividad) {
                         if (perAttempt >= totalQuestions) {
                             infoText.innerHTML = '<span class="text-warning"><i class="fas fa-exclamation-triangle"></i> Debe ser menor que el total (' + totalQuestions + '). Agrega más preguntas.</span>';
                         } else {
-                            infoText.innerHTML = 'Se seleccionarán <strong>' + perAttempt + '</strong> de <strong>' + totalQuestions + '</strong> preguntas para cada estudiante.';
+                            const equalShare = (100 / perAttempt).toFixed(2);
+                            infoText.innerHTML = 'Se seleccionarán <strong>' + perAttempt + '</strong> de <strong>' + totalQuestions + '</strong> preguntas para cada estudiante. Cada pregunta valdrá <strong>' + equalShare + '%</strong> (100% ÷ ' + perAttempt + ').';
                         }
                     } else {
                         infoText.innerHTML = 'Agrega preguntas al banco primero.';
                     }
                 }
+                applyEditBankPointsVisibility();
             };
             
             // Función para actualizar porcentaje disponible del quiz (igual que en creación)
@@ -1167,7 +1191,7 @@ function editarActividadCompleta(actividadId, actividad) {
                 actividad.contenido_json.questions.forEach(question => {
                     loadEditQuestion(question);
                 });
-                setTimeout(() => actualizarPorcentajeDisponibleQuizEdit(), 100);
+                setTimeout(() => { actualizarPorcentajeDisponibleQuizEdit(); applyEditBankPointsVisibility(); }, 100);
             }
         },
         preConfirm: () => {
@@ -1222,26 +1246,36 @@ function editarActividadCompleta(actividadId, actividad) {
                     return false;
                 }
                 
+                // Pre-leer config del banco para auto-distribuir puntos
+                const _editEnableBankEarly = document.getElementById('edit-enable-bank')?.checked || false;
+                const _editPerAttemptEarly = parseInt(document.getElementById('edit-questions-per-attempt')?.value) || window.editQuestions.length;
+                const _editEqualShare = (_editEnableBankEarly && _editPerAttemptEarly > 0) ? (100 / _editPerAttemptEarly) : 0;
+                
                 const questions = [];
                 let totalQuestionPoints = 0;
                 
                 for (const questionId of window.editQuestions) {
                     const questionText = document.getElementById(`edit-question-text-${questionId}`).value;
-                    const questionPoints = parseFloat(document.getElementById(`edit-question-points-${questionId}`).value) || 0;
+                    let questionPoints = parseFloat(document.getElementById(`edit-question-points-${questionId}`).value) || 0;
+                    if (_editEnableBankEarly) {
+                        questionPoints = _editEqualShare;
+                    }
                     
                     if (!questionText.trim()) {
                         Swal.showValidationMessage('Todas las preguntas deben tener texto');
                         return false;
                     }
                     
-                    // Validar porcentaje por pregunta (0-100)
-                    if (questionPoints <= 0) {
-                        Swal.showValidationMessage('Cada pregunta debe tener un porcentaje mayor a 0%');
-                        return false;
-                    }
-                    if (questionPoints > 100) {
-                        Swal.showValidationMessage('El porcentaje de cada pregunta no puede exceder 100%');
-                        return false;
+                    // Validar porcentaje por pregunta (0-100) — solo si no hay banco
+                    if (!_editEnableBankEarly) {
+                        if (questionPoints <= 0) {
+                            Swal.showValidationMessage('Cada pregunta debe tener un porcentaje mayor a 0%');
+                            return false;
+                        }
+                        if (questionPoints > 100) {
+                            Swal.showValidationMessage('El porcentaje de cada pregunta no puede exceder 100%');
+                            return false;
+                        }
                     }
                     
                     const optionsContainer = document.getElementById(`edit-options-container-${questionId}`);
@@ -1286,8 +1320,8 @@ function editarActividadCompleta(actividadId, actividad) {
                     });
                 }
                 
-                // Validar que la suma total no exceda 100%
-                if (totalQuestionPoints > 100) {
+                // Validar que la suma total no exceda 100% (solo si no hay banco)
+                if (!_editEnableBankEarly && totalQuestionPoints > 100) {
                     Swal.showValidationMessage('La suma de porcentajes de todas las preguntas no puede exceder 100% (actual: ' + totalQuestionPoints.toFixed(1) + '%)');
                     return false;
                 }
@@ -1306,7 +1340,7 @@ function editarActividadCompleta(actividadId, actividad) {
                 quizData = { 
                     duration: parseInt(duration), 
                     questions: questions, 
-                    totalPoints: totalQuestionPoints,
+                    totalPoints: editEnableBank ? 100 : totalQuestionPoints,
                     quizConfig: {
                         enableQuestionBank: editEnableBank,
                         questionsPerAttempt: editEnableBank ? editQuestionsPerAttempt : questions.length,
@@ -1362,7 +1396,7 @@ function loadEditQuestion(question) {
                     <label>Texto de la Pregunta *</label>
                     <input type="text" class="form-control" id="edit-question-text-${questionId}" value="${questionText}" placeholder="Escribe la pregunta aquí">
                 </div>
-                <div class="form-group">
+                <div class="form-group edit-question-points-group">
                     <label>Porcentaje de la Pregunta (%) <small class="text-muted">Suma máx: 100%</small></label>
                     <input type="number" class="form-control edit-question-points-input" id="edit-question-points-${questionId}" 
                            min="0.1" max="100" step="0.1" value="${questionPoints}" placeholder="Ej: 20"
@@ -1429,7 +1463,7 @@ function addEditQuestion() {
                     <label>Texto de la Pregunta *</label>
                     <input type="text" class="form-control" id="edit-question-text-${questionId}" placeholder="Escribe la pregunta aquí">
                 </div>
-                <div class="form-group">
+                <div class="form-group edit-question-points-group">
                     <label>Porcentaje de la Pregunta (%) <small class="text-muted">Suma máx: 100%</small></label>
                     <input type="number" class="form-control edit-question-points-input" id="edit-question-points-${questionId}" 
                            min="0.1" max="100" step="0.1" value="" placeholder="Ej: 20"
@@ -1456,6 +1490,7 @@ function addEditQuestion() {
     
     // Actualizar info del banco de preguntas
     if (typeof updateEditBankInfo === 'function') setTimeout(() => updateEditBankInfo(), 60);
+    if (typeof applyEditBankPointsVisibility === 'function') setTimeout(() => applyEditBankPointsVisibility(), 70);
 }
 
 function removeEditQuestion(questionId) {

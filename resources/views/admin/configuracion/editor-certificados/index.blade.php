@@ -303,8 +303,8 @@
                         <div class="draggable-element mb-5" style="max-width:640px;">
                             <p class="text-secondary" style="line-height:1.7;font-size:14px;padding:0 40px;">
                                 Por haber participado y aprobado satisfactoriamente las actividades académicas del curso
-                                <span class="font-weight-bold font-italic" style="color:#1e3a8a;" id="certCursoNombre">NOMBRE DEL CURSO</span>, con una intensidad horaria de
-                                <span class="font-weight-bold" id="certHoras">40</span> horas cronológicas, desarrollado bajo la modalidad presencial en las instalaciones del hospital.
+                                <span class="font-weight-bold font-italic" style="color:#1e3a8a;" id="certCursoNombre">NOMBRE DEL CURSO</span>, desarrollado bajo la modalidad <span class="font-weight-bold">Virtual</span>.
+                                <span class="font-weight-bold d-none" id="certHoras">40</span>
                             </p>
                         </div>
 
@@ -771,8 +771,9 @@ document.addEventListener('DOMContentLoaded', function() {
         const ap1 = document.getElementById('inputApellido1').value || 'APELLIDO1';
         const ap2 = document.getElementById('inputApellido2').value || 'APELLIDO2';
         const doc = document.getElementById('inputDocumento').value || '00.000.000';
-        const firmaNombre = document.getElementById('inputFirmaNombre').value || 'FIRMACOR';
-        const firmaCargo = document.getElementById('inputFirmaCargo').value || 'CARGOCOR';
+        // FIRMACOR se toma del campo "Nombre del Curso" y CARGOCOR del campo "Detalle Adicional"
+        const firmaNombre = document.getElementById('inputCursoNombre').value || 'FIRMACOR';
+        const firmaCargo = document.getElementById('inputDetalle').value || 'CARGOCOR';
 
         // Siempre actualizar nombre y documento del estudiante (es lo único que cambia)
         const certNombre = document.getElementById('certNombreCompleto');
@@ -803,8 +804,8 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Escuchar cambios en los campos editables (firma, detalle)
-    ['inputFirmaNombre', 'inputFirmaCargo', 'inputDetalle'].forEach(function(id) {
+    // Escuchar cambios en los campos editables (firma, detalle, curso)
+    ['inputFirmaNombre', 'inputFirmaCargo', 'inputDetalle', 'inputCursoNombre'].forEach(function(id) {
         const el = document.getElementById(id);
         if (el) el.addEventListener('input', actualizarCertificado);
     });
