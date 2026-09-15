@@ -53,7 +53,7 @@
         /* ====== BANNER SUPERIOR ====== */
         .welcome-banner {
             width: 100%;
-            padding: clamp(10px, 2vw, 18px) clamp(15px, 3vw, 30px);
+            padding: clamp(5px, 1vw, 10px) clamp(15px, 3vw, 30px);
             text-align: center;
             border-radius: 0 0 var(--radius-sm) var(--radius-sm);
             position: relative;
@@ -65,13 +65,13 @@
         .welcome-banner h2 {
             margin: 0;
             font-weight: 700;
-            font-size: clamp(1rem, 2.5vw, 1.5rem);
+            font-size: clamp(0.95rem, 2vw, 1.3rem);
             text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
             animation: fadeInDown 1s ease;
         }
         .welcome-banner p {
-            margin: 5px 0 0;
-            font-size: clamp(0.8rem, 1.8vw, 1rem);
+            margin: 3px 0 0;
+            font-size: clamp(0.75rem, 1.6vw, 0.9rem);
             opacity: 0.9;
             animation: fadeInDown 1.2s ease;
         }
@@ -195,7 +195,7 @@
         }
 
         .card-right {
-            padding: var(--space-md) var(--space-lg);
+            padding: var(--space-sm) var(--space-md);
             color: #333;
         }
 
@@ -214,7 +214,7 @@
             border: none;
             color: #6c757d;
             font-weight: 500;
-            padding: var(--space-xs) var(--space-md);
+            padding: 4px var(--space-md);
             font-size: clamp(0.85rem, 1.5vw, 0.95rem);
             white-space: nowrap;
         }
@@ -226,7 +226,7 @@
         }
 
         .tab-content {
-            padding-top: var(--space-sm);
+            padding-top: 6px;
         }
 
         .form-control {
@@ -298,15 +298,16 @@
         .row { margin-bottom: 0 !important; }
         .row .col-md-6 .mb-3 { margin-bottom: 8px !important; }
 
-        /* Formulario de registro compacto */
-        #register .form-control { padding: 5px 10px; margin-bottom: 6px; }
-        #register .form-label { margin-bottom: 2px; }
-        #register .mb-3 { margin-bottom: 6px !important; }
-        #register h3 { margin-bottom: 8px !important; }
+        /* Formulario de registro compacto — todo visible sin scroll */
+        #register .form-control { padding: 3px 8px; margin-bottom: 0; font-size: 0.8rem; line-height: 1.3; }
+        #register .form-label { margin-bottom: 0; font-size: 0.75rem; font-weight: 500; line-height: 1.15; }
+        #register .mb-3 { margin-bottom: 4px !important; }
+        #register h3 { margin-bottom: 4px !important; font-size: 1rem; }
         #register .row { margin-bottom: 0 !important; }
-        #register .d-grid { margin-top: 8px; }
-        #register .row.g-2 { margin-left: -4px; margin-right: -4px; }
+        #register .row.g-2 { --bs-gutter-y: 0; margin-left: -4px; margin-right: -4px; }
         #register .row.g-2 .col-6 { padding-left: 4px; padding-right: 4px; }
+        #register .d-grid { margin-top: 4px; }
+        #register .btn-primary { padding: 5px 12px; }
 
         /* ====================================================
            RESPONSIVE — mobile-first base ➜ progressive
@@ -327,14 +328,16 @@
         /* ---- ≥ 993px  Laptop — two-column side-by-side ---- */
         @media (min-width: 993px) {
             .main-content {
-                grid-template-columns: 1fr clamp(380px, 35vw, 480px);
-                align-items: stretch;
-                padding: var(--space-lg);
+                grid-template-columns: 1fr clamp(560px, 48vw, 680px);
+                align-items: center;
+                gap: var(--space-md);
+                padding: 4px var(--space-md);
             }
             .media-area {
                 aspect-ratio: auto;
-                max-height: none;
-                align-self: stretch;
+                max-height: 82vh;
+                align-self: center;
+                height: 82vh;
             }
             .auth-card {
                 max-width: none;
@@ -345,9 +348,9 @@
         /* ---- ≥ 1200px Desktop — spacious ---- */
         @media (min-width: 1200px) {
             .main-content {
-                grid-template-columns: 1fr 480px;
-                gap: var(--space-xl);
-                padding: var(--space-xl);
+                grid-template-columns: 1fr 680px;
+                gap: var(--space-lg);
+                padding: 6px var(--space-lg);
             }
         }
 
@@ -495,7 +498,7 @@
             <div class="auth-card">
                 <div class="row g-0">
                     <!-- Lado izquierdo - Información del Hospital -->
-                    <div class="col-md-5 card-left">
+                    <div class="col-md-4 card-left">
                         <div class="hospital-info">
                             <h1>Hospital Universitario del Valle</h1>
                             <p>Gestión Educativa</p>
@@ -518,7 +521,7 @@
                     </div>
 
                     <!-- Lado derecho - Formularios de Autenticación -->
-                    <div class="col-md-7 card-right">
+                    <div class="col-md-8 card-right">
                         <ul class="nav nav-tabs" id="authTabs" role="tablist">
                             <li class="nav-item" role="presentation">
                                 <button class="nav-link active" id="login-tab" data-bs-toggle="tab" data-bs-target="#login" type="button" role="tab" aria-controls="login" aria-selected="true">Iniciar Sesión</button>
@@ -648,99 +651,119 @@
                                         </div>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="email" class="form-label">Correo Electrónico</label>
-                                        <input type="email" class="form-control @error('email') is-invalid @enderror" id="register_email" name="email" value="{{ old('email') }}" required autocomplete="email">
-                                        @error('email')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="phone" class="form-label">Teléfono de Contacto</label>
-                                        <input type="tel" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="Ej: 3001234567" maxlength="20" autocomplete="tel">
-                                        @error('phone')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-                                    
-                                    <div class="mb-3">
-                                        <label for="password" class="form-label">Contraseña</label>
-                                        <input type="password" class="form-control @error('password') is-invalid @enderror" id="register_password" name="password" required autocomplete="new-password">
-                                        @error('password')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="email" class="form-label">Correo Electrónico</label>
+                                                <input type="email" class="form-control @error('email') is-invalid @enderror" id="register_email" name="email" value="{{ old('email') }}" required autocomplete="email">
+                                                @error('email')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="phone" class="form-label">Teléfono de Contacto</label>
+                                                <input type="tel" class="form-control @error('phone') is-invalid @enderror" id="phone" name="phone" value="{{ old('phone') }}" placeholder="Ej: 3001234567" maxlength="20" autocomplete="tel">
+                                                @error('phone')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                     </div>
                                     
-                                    <div class="mb-3">
-                                        <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
-                                        <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required autocomplete="new-password">
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="password" class="form-label">Contraseña</label>
+                                                <input type="password" class="form-control @error('password') is-invalid @enderror" id="register_password" name="password" required autocomplete="new-password">
+                                                @error('password')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="password_confirmation" class="form-label">Confirmar Contraseña</label>
+                                                <input type="password" class="form-control" id="password_confirmation" name="password_confirmation" required autocomplete="new-password">
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="servicio_area_id" class="form-label">Servicio / Área</label>
-                                        <select class="form-control @error('servicio_area_id') is-invalid @enderror" id="servicio_area_id" name="servicio_area_id" required>
-                                            <option value="">Seleccione Servicio/Área</option>
-                                            @foreach(\App\Models\ServicioArea::all() as $servicio)
-                                                <option value="{{ $servicio->id }}" {{ old('servicio_area_id') == $servicio->id ? 'selected' : '' }}>{{ $servicio->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('servicio_area_id')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="servicio_area_id" class="form-label">Servicio / Área</label>
+                                                <select class="form-control @error('servicio_area_id') is-invalid @enderror" id="servicio_area_id" name="servicio_area_id" required>
+                                                    <option value="">Seleccione Servicio/Área</option>
+                                                    @foreach(\App\Models\ServicioArea::all() as $servicio)
+                                                        <option value="{{ $servicio->id }}" {{ old('servicio_area_id') == $servicio->id ? 'selected' : '' }}>{{ $servicio->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('servicio_area_id')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="vinculacion_contrato_id" class="form-label">Tipo de Vinculación/Contrato</label>
+                                                <select class="form-control @error('vinculacion_contrato_id') is-invalid @enderror" id="vinculacion_contrato_id" name="vinculacion_contrato_id" required>
+                                                    <option value="">Seleccione Tipo de Vinculación</option>
+                                                    @foreach(\App\Models\VinculacionContrato::all() as $vinculacion)
+                                                        <option value="{{ $vinculacion->id }}" {{ old('vinculacion_contrato_id') == $vinculacion->id ? 'selected' : '' }}>{{ $vinculacion->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('vinculacion_contrato_id')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                     </div>
 
-                                    <div class="mb-3">
-                                        <label for="vinculacion_contrato_id" class="form-label">Tipo de Vinculación/Contrato</label>
-                                        <select class="form-control @error('vinculacion_contrato_id') is-invalid @enderror" id="vinculacion_contrato_id" name="vinculacion_contrato_id" required>
-                                            <option value="">Seleccione Tipo de Vinculación</option>
-                                            @foreach(\App\Models\VinculacionContrato::all() as $vinculacion)
-                                                <option value="{{ $vinculacion->id }}" {{ old('vinculacion_contrato_id') == $vinculacion->id ? 'selected' : '' }}>{{ $vinculacion->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('vinculacion_contrato_id')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="cargo_id" class="form-label">Cargo/Especialidad</label>
-                                        <select class="form-control @error('cargo_id') is-invalid @enderror" id="cargo_id" name="cargo_id">
-                                            <option value="">Seleccione Cargo/Especialidad</option>
-                                            @foreach(\App\Models\Cargo::orderBy('nombre')->get() as $cargo)
-                                                <option value="{{ $cargo->id }}" {{ old('cargo_id') == $cargo->id ? 'selected' : '' }}>{{ $cargo->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('cargo_id')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="actividad_id" class="form-label">Actividad</label>
-                                        <select class="form-control @error('actividad_id') is-invalid @enderror" id="actividad_id" name="actividad_id">
-                                            <option value="">Seleccione Actividad</option>
-                                            @foreach(\App\Models\Actividad::orderBy('nombre')->get() as $actividad)
-                                                <option value="{{ $actividad->id }}" {{ old('actividad_id') == $actividad->id ? 'selected' : '' }}>{{ $actividad->nombre }}</option>
-                                            @endforeach
-                                        </select>
-                                        @error('actividad_id')
-                                            <span class="invalid-feedback" role="alert">
-                                                <strong>{{ $message }}</strong>
-                                            </span>
-                                        @enderror
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="cargo_id" class="form-label">Cargo/Especialidad</label>
+                                                <select class="form-control @error('cargo_id') is-invalid @enderror" id="cargo_id" name="cargo_id">
+                                                    <option value="">Seleccione Cargo/Especialidad</option>
+                                                    @foreach(\App\Models\Cargo::orderBy('nombre')->get() as $cargo)
+                                                        <option value="{{ $cargo->id }}" {{ old('cargo_id') == $cargo->id ? 'selected' : '' }}>{{ $cargo->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('cargo_id')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
+                                        <div class="col-6">
+                                            <div class="mb-3">
+                                                <label for="actividad_id" class="form-label">Actividad</label>
+                                                <select class="form-control @error('actividad_id') is-invalid @enderror" id="actividad_id" name="actividad_id">
+                                                    <option value="">Seleccione Actividad</option>
+                                                    @foreach(\App\Models\Actividad::orderBy('nombre')->get() as $actividad)
+                                                        <option value="{{ $actividad->id }}" {{ old('actividad_id') == $actividad->id ? 'selected' : '' }}>{{ $actividad->nombre }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('actividad_id')
+                                                    <span class="invalid-feedback" role="alert">
+                                                        <strong>{{ $message }}</strong>
+                                                    </span>
+                                                @enderror
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div class="mb-3">
