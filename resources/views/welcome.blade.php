@@ -41,10 +41,11 @@
 
         .overlay {
             background-color: rgba(0, 0, 0, 0.6);
-            min-height: 100vh;
-            min-height: 100dvh;
-            width: 100%;
             position: fixed;
+            inset: 0;
+            height: 100vh;
+            height: 100dvh;
+            width: 100%;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
@@ -298,16 +299,19 @@
         .row { margin-bottom: 0 !important; }
         .row .col-md-6 .mb-3 { margin-bottom: 8px !important; }
 
-        /* Formulario de registro compacto — todo visible sin scroll */
-        #register .form-control { padding: 3px 8px; margin-bottom: 0; font-size: 0.8rem; line-height: 1.3; }
-        #register .form-label { margin-bottom: 0; font-size: 0.75rem; font-weight: 500; line-height: 1.15; }
-        #register .mb-3 { margin-bottom: 4px !important; }
-        #register h3 { margin-bottom: 4px !important; font-size: 1rem; }
-        #register .row { margin-bottom: 0 !important; }
-        #register .row.g-2 { --bs-gutter-y: 0; margin-left: -4px; margin-right: -4px; }
-        #register .row.g-2 .col-6 { padding-left: 4px; padding-right: 4px; }
-        #register .d-grid { margin-top: 4px; }
-        #register .btn-primary { padding: 5px 12px; }
+        /* Formulario de registro compacto — SOLO escritorio (para que quepa sin scroll).
+           En móvil se usan los tamaños cómodos por defecto, con scroll natural. */
+        @media (min-width: 993px) {
+            #register .form-control { padding: 3px 8px; margin-bottom: 0; font-size: 0.8rem; line-height: 1.3; }
+            #register .form-label { margin-bottom: 0; font-size: 0.75rem; font-weight: 500; line-height: 1.15; }
+            #register .mb-3 { margin-bottom: 4px !important; }
+            #register h3 { margin-bottom: 4px !important; font-size: 1rem; }
+            #register .row { margin-bottom: 0 !important; }
+            #register .row.g-2 { --bs-gutter-y: 0; margin-left: -4px; margin-right: -4px; }
+            #register .row.g-2 .col-6 { padding-left: 4px; padding-right: 4px; }
+            #register .d-grid { margin-top: 4px; }
+            #register .btn-primary { padding: 5px 12px; }
+        }
 
         /* ====================================================
            RESPONSIVE — mobile-first base ➜ progressive
