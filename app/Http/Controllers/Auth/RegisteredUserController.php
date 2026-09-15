@@ -9,6 +9,7 @@ use App\Models\Cargo;
 use App\Models\ServicioArea;
 use App\Models\VinculacionContrato;
 use App\Models\Sede;
+use App\Services\MailFailure;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -81,6 +82,27 @@ class RegisteredUserController extends Controller
             'phone' => $request->phone,
         ]);
 
+        // El correo de verificación es el prioritario: se envía primero para que un
+        // fallo de SMTP no obligue a esperar dos tiempos de espera seguidos.
+        $mailFallo = null;
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Mail\VerificarCuenta($user, $user->verificationUrl())
+            );
+        } catch (\Throwable $e) {
+            $mailFallo = $e;
+
+            \Illuminate\Support\Facades\Log::error('Error al enviar correo de verificación', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage(),
+                'diagnostico' => MailFailure::diagnostico($e),
+            ]);
+
+            session()->flash('error', MailFailure::mensaje($e));
+        }
+
         // Asignar automáticamente el curso de Inducción Institucional (ID 18)
         try {
             $cursoInduccion = \App\Models\Curso::find(18);
@@ -102,35 +124,21 @@ class RegisteredUserController extends Controller
                     ]
                 );
 
-                // Enviar correo de asignación de curso
-                $inscripcionUrl = route('academico.curso.inscribirse', 18);
-                \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                    new \App\Mail\AsignacionCurso($user, $cursoInduccion, $inscripcionUrl)
-                );
+                // Enviar correo de asignación de curso. Si el servidor de correo ya
+                // falló arriba, no se reintenta: la asignación queda igualmente hecha.
+                if (! $mailFallo) {
+                    $inscripcionUrl = route('academico.curso.inscribirse', 18);
+                    \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                        new \App\Mail\AsignacionCurso($user, $cursoInduccion, $inscripcionUrl)
+                    );
+                }
             }
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             \Illuminate\Support\Facades\Log::error('Error al asignar automáticamente curso Inducción al registrar usuario: ' . $e->getMessage());
         }
 
         // NO disparar evento Registered para evitar correo automático de Laravel en inglés
         // event(new Registered($user));
-
-        // Enviar SOLO correo de verificación personalizado en español
-        try {
-            $verificationUrl = \Illuminate\Support\Facades\URL::temporarySignedRoute(
-                'verification.verify',
-                now()->addHours(24),
-                ['id' => $user->id, 'hash' => sha1($user->email)]
-            );
-
-            \Illuminate\Support\Facades\Mail::to($user->email)->send(
-                new \App\Mail\VerificarCuenta($user, $verificationUrl)
-            );
-        } catch (\Exception $e) {
-            \Illuminate\Support\Facades\Log::error('Error al enviar correo de verificación: ' . $e->getMessage());
-            // Mostramos un mensaje claro para que los administradores identifiquen el error de SMTP
-            session()->flash('error', 'Registro exitoso, pero hubo un error con el servidor de correo. La configuración SMTP de credenciales de Google es incorrecta. Por favor contacta al administrador.');
-        }
 
         Auth::login($user);
 

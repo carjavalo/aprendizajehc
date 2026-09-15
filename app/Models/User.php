@@ -6,7 +6,6 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class User extends Authenticatable implements MustVerifyEmail
@@ -163,13 +162,32 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * URL firmada de verificación (válida 24 horas).
+     *
+     * @return string
+     */
+    public function verificationUrl()
+    {
+        return \Illuminate\Support\Facades\URL::temporarySignedRoute(
+            'verification.verify',
+            now()->addHours(24),
+            ['id' => $this->id, 'hash' => sha1($this->getEmailForVerification())]
+        );
+    }
+
+    /**
      * Send the email verification notification.
+     *
+     * Se usa el mailable propio en español (VerificarCuenta) en lugar de la
+     * notificación por defecto de Laravel, que llega en inglés.
      *
      * @return void
      */
     public function sendEmailVerificationNotification()
     {
-        $this->notify(new VerifyEmail);
+        \Illuminate\Support\Facades\Mail::to($this->email)->send(
+            new \App\Mail\VerificarCuenta($this, $this->verificationUrl())
+        );
     }
 
     /**
