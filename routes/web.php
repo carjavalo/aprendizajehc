@@ -323,6 +323,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/docente/{docente}/cursos', [\App\Http\Controllers\CertificadoPlantillaController::class, 'getCursosPorDocente'])->name('docente.cursos');
             Route::get('/curso/{curso}/estudiantes', [\App\Http\Controllers\CertificadoPlantillaController::class, 'getEstudiantesPorCurso'])->name('curso.estudiantes');
             Route::get('/{plantilla}/json', [\App\Http\Controllers\CertificadoPlantillaController::class, 'showJson'])->name('showJson');
+            Route::get('/{plantilla}/asignaciones', [\App\Http\Controllers\CertificadoPlantillaController::class, 'asignaciones'])->name('asignaciones');
+            Route::post('/{plantilla}/asignar', [\App\Http\Controllers\CertificadoPlantillaController::class, 'asignar'])->name('asignar');
+            Route::post('/{plantilla}/desasignar', [\App\Http\Controllers\CertificadoPlantillaController::class, 'desasignar'])->name('desasignar');
         });
 
         // Rutas de Publicidad y Productos (con permisos individuales)

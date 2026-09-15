@@ -128,6 +128,75 @@ class CertificadoPlantillaController extends Controller
     }
 
     /**
+     * Devolver los cursos vinculados a la plantilla y los disponibles para vincular.
+     */
+    public function asignaciones(PlantillaCertificado $plantilla)
+    {
+        $this->verificarAcceso();
+
+        $asignados = $plantilla->cursos()
+            ->orderBy('titulo')
+            ->get(['id', 'titulo'])
+            ->map(fn ($c) => ['id' => $c->id, 'titulo' => $c->titulo])
+            ->values();
+
+        $disponibles = Curso::where(function ($q) use ($plantilla) {
+                $q->whereNull('plantilla_certificado_id')
+                  ->orWhere('plantilla_certificado_id', '!=', $plantilla->id);
+            })
+            ->with('plantillaCertificado:id,nombre')
+            ->orderBy('titulo')
+            ->get(['id', 'titulo', 'plantilla_certificado_id'])
+            ->map(fn ($c) => [
+                'id' => $c->id,
+                'titulo' => $c->titulo,
+                'plantilla_actual' => $c->plantillaCertificado->nombre ?? null,
+            ])
+            ->values();
+
+        return response()->json([
+            'plantilla' => ['id' => $plantilla->id, 'nombre' => $plantilla->nombre],
+            'asignados' => $asignados,
+            'disponibles' => $disponibles,
+        ]);
+    }
+
+    /**
+     * Vincular un curso a la plantilla (asigna esta plantilla al curso).
+     */
+    public function asignar(Request $request, PlantillaCertificado $plantilla)
+    {
+        $this->verificarAcceso();
+
+        $data = $request->validate([
+            'curso_id' => 'required|exists:cursos,id',
+        ]);
+
+        Curso::where('id', $data['curso_id'])
+            ->update(['plantilla_certificado_id' => $plantilla->id]);
+
+        return response()->json(['success' => true, 'message' => 'Curso vinculado a la plantilla correctamente.']);
+    }
+
+    /**
+     * Desvincular un curso de la plantilla (deja el curso sin plantilla).
+     */
+    public function desasignar(Request $request, PlantillaCertificado $plantilla)
+    {
+        $this->verificarAcceso();
+
+        $data = $request->validate([
+            'curso_id' => 'required|exists:cursos,id',
+        ]);
+
+        Curso::where('id', $data['curso_id'])
+            ->where('plantilla_certificado_id', $plantilla->id)
+            ->update(['plantilla_certificado_id' => null]);
+
+        return response()->json(['success' => true, 'message' => 'Curso desvinculado de la plantilla correctamente.']);
+    }
+
+    /**
      * Actualizar una plantilla (nombre, firma, cargo)
      */
     public function update(Request $request, PlantillaCertificado $plantilla)

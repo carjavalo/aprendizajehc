@@ -455,6 +455,43 @@
   </div>
 </div>
 
+<!-- Modal para Gestionar Asignaciones de una Plantilla (vincular / desvincular cursos) -->
+<div class="modal fade" id="modalAsignaciones" tabindex="-1" role="dialog" aria-labelledby="modalAsignacionesLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header" style="background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%); color: white;">
+        <h5 class="modal-title" id="modalAsignacionesLabel"><i class="fas fa-link mr-2"></i>Cursos vinculados: <span id="asignacionesPlantillaNombre"></span></h5>
+        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body p-4">
+        <input type="hidden" id="asignacionesPlantillaId">
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <h6 class="font-weight-bold text-primary"><i class="fas fa-check-circle mr-1"></i>Cursos vinculados</h6>
+            <ul class="list-group" id="listaCursosAsignados" style="max-height:320px;overflow:auto;"></ul>
+          </div>
+          <div class="col-md-6 mb-3">
+            <h6 class="font-weight-bold text-secondary"><i class="fas fa-plus-circle mr-1"></i>Vincular un curso</h6>
+            <div class="input-group">
+              <select class="form-control" id="selectCursoVincular"></select>
+              <div class="input-group-append">
+                <button class="btn btn-success" id="btnVincularCurso" type="button"><i class="fas fa-link mr-1"></i>Vincular</button>
+              </div>
+            </div>
+            <small class="text-muted d-block mt-2">
+              <i class="fas fa-info-circle mr-1"></i>Desvincula todos los cursos para poder eliminar la plantilla. Si vinculas un curso que ya usa otra plantilla, se reemplazará por esta.
+            </small>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary btn-sm" data-dismiss="modal"><i class="fas fa-times mr-1"></i>Cerrar</button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Modal para Vista Previa de Plantilla -->
 <div class="modal fade" id="modalVistaPlantilla" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog modal-xl" role="document">
@@ -1227,9 +1264,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     { data: 'firma_cargo', render: function(data) {
                         return data && data !== '-' ? '<i class="fas fa-briefcase mr-1 text-muted"></i>' + data : '<span class="text-muted">-</span>';
                     }},
-                    { data: 'cursos_count', className: 'text-center', render: function(data) {
-                        if (data > 0) return '<span class="badge badge-info">' + data + ' curso(s)</span>';
-                        return '<span class="badge badge-secondary">Sin asignar</span>';
+                    { data: 'cursos_count', className: 'text-center', render: function(data, type, row) {
+                        var label = data > 0 ? (data + ' curso(s)') : 'Sin asignar';
+                        var cls = data > 0 ? 'badge-info' : 'badge-secondary';
+                        return '<span class="badge ' + cls + ' badge-asignaciones" style="cursor:pointer;" ' +
+                            'title="Clic para vincular o desvincular cursos" ' +
+                            'data-id="' + row.id + '" data-nombre="' + row.nombre + '">' +
+                            label + ' <i class="fas fa-link ml-1"></i></span>';
                     }},
                     { data: 'created_at' },
                     { data: null, orderable: false, className: 'text-center', render: function(data, type, row) {
@@ -1417,6 +1458,113 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
         });
+    });
+
+    // ================================================================
+    // ===== Gestión de asignaciones (vincular / desvincular cursos) ==
+    // ================================================================
+    function cargarAsignacionesPlantilla(id) {
+        fetch('/configuracion/editor-certificados/' + id + '/asignaciones', { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(data => {
+                document.getElementById('asignacionesPlantillaNombre').textContent = data.plantilla.nombre;
+                document.getElementById('asignacionesPlantillaId').value = data.plantilla.id;
+
+                const lista = document.getElementById('listaCursosAsignados');
+                if (!data.asignados.length) {
+                    lista.innerHTML = '<li class="list-group-item text-muted text-center">Sin cursos vinculados</li>';
+                } else {
+                    lista.innerHTML = data.asignados.map(function(c) {
+                        return '<li class="list-group-item d-flex justify-content-between align-items-center">' +
+                            '<span><i class="fas fa-graduation-cap mr-2 text-primary"></i>' + $('<div>').text(c.titulo).html() + '</span>' +
+                            '<button class="btn btn-outline-danger btn-sm btn-desvincular-curso" data-curso="' + c.id + '" title="Desvincular curso">' +
+                                '<i class="fas fa-unlink"></i></button>' +
+                            '</li>';
+                    }).join('');
+                }
+
+                const sel = document.getElementById('selectCursoVincular');
+                if (!data.disponibles.length) {
+                    sel.innerHTML = '<option value="">No hay cursos disponibles</option>';
+                } else {
+                    sel.innerHTML = '<option value="">-- Seleccione un curso --</option>' + data.disponibles.map(function(c) {
+                        const extra = c.plantilla_actual ? ' (actual: ' + c.plantilla_actual + ')' : '';
+                        return '<option value="' + c.id + '">' + $('<div>').text(c.titulo + extra).html() + '</option>';
+                    }).join('');
+                }
+            })
+            .catch(() => Swal.fire('Error', 'No se pudieron cargar las asignaciones de la plantilla.', 'error'));
+    }
+
+    // Abrir el modal de asignaciones al hacer clic en el badge de cursos
+    $(document).on('click', '.badge-asignaciones', function() {
+        const id = $(this).data('id');
+        cargarAsignacionesPlantilla(id);
+        $('#modalAsignaciones').modal('show');
+    });
+
+    // Desvincular un curso de la plantilla
+    $(document).on('click', '.btn-desvincular-curso', function() {
+        const plantillaId = document.getElementById('asignacionesPlantillaId').value;
+        const cursoId = $(this).data('curso');
+        fetch('/configuracion/editor-certificados/' + plantillaId + '/desasignar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            body: JSON.stringify({ curso_id: cursoId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                cargarAsignacionesPlantilla(plantillaId);
+                if (tablaPlantillasInstance) tablaPlantillasInstance.ajax.reload(null, false);
+                actualizarSelectPlantillas();
+                mostrarToast('success', data.message);
+            } else {
+                Swal.fire('Error', (data.message || 'No se pudo desvincular el curso.'), 'error');
+            }
+        })
+        .catch(() => Swal.fire('Error', 'Error de conexión al desvincular el curso.', 'error'));
+    });
+
+    // Vincular un curso a la plantilla
+    $(document).on('click', '#btnVincularCurso', function() {
+        const plantillaId = document.getElementById('asignacionesPlantillaId').value;
+        const cursoId = document.getElementById('selectCursoVincular').value;
+        if (!cursoId) {
+            Swal.fire('Atención', 'Seleccione un curso para vincular.', 'info');
+            return;
+        }
+        fetch('/configuracion/editor-certificados/' + plantillaId + '/asignar', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+            body: JSON.stringify({ curso_id: cursoId })
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.success) {
+                cargarAsignacionesPlantilla(plantillaId);
+                if (tablaPlantillasInstance) tablaPlantillasInstance.ajax.reload(null, false);
+                actualizarSelectPlantillas();
+                mostrarToast('success', data.message);
+            } else {
+                Swal.fire('Error', (data.message || 'No se pudo vincular el curso.'), 'error');
+            }
+        })
+        .catch(() => Swal.fire('Error', 'Error de conexión al vincular el curso.', 'error'));
+    });
+
+    // Soporte para modales apilados (asignaciones sobre gestión de plantillas)
+    $('#modalAsignaciones').on('show.bs.modal', function() {
+        const zIndex = 1060;
+        $(this).css('z-index', zIndex);
+        setTimeout(function() {
+            $('.modal-backdrop').not('.modal-stack').last().css('z-index', zIndex - 1).addClass('modal-stack');
+        }, 0);
+    });
+    $('#modalAsignaciones').on('hidden.bs.modal', function() {
+        if ($('#modalGestionPlantillas').hasClass('show')) {
+            $('body').addClass('modal-open');
+        }
     });
 
     // Función auxiliar: Actualizar select de plantillas sin recargar la página
