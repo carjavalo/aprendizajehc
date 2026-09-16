@@ -26,6 +26,7 @@ class EmailVerificationNotificationController extends Controller
                 'user_id' => $request->user()->id,
                 'email' => $request->user()->email,
                 'error' => $e->getMessage(),
+                'diagnostico' => MailFailure::diagnostico($e),
             ]);
 
             return back()->with('error', MailFailure::mensaje($e));
