@@ -125,7 +125,7 @@ class UserController extends Controller
     {
         Gate::authorize('users.view');
 
-        $user = User::with(['servicioArea', 'vinculacionContrato', 'sede'])->findOrFail($id);
+        $user = User::with(['servicioArea', 'vinculacionContrato', 'sede', 'cargo', 'actividad'])->findOrFail($id);
         return view('admin.users.show', compact('user'));
     }
 

@@ -33,11 +33,39 @@
                                         </tr>
                                         <tr>
                                             <th class="bg-light">Segundo Apellido</th>
-                                            <td>{{ $user->apellido2 }}</td>
+                                            <td>{{ $user->apellido2 ?: 'No especificado' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Tipo de Documento</th>
+                                            <td>
+                                                @if($user->tipo_documento)
+                                                    <span class="badge badge-secondary">{{ $user->tipo_documento }}</span>
+                                                @else
+                                                    <span class="text-muted">No especificado</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Número de Documento</th>
+                                            <td>{{ $user->numero_documento ?: 'No especificado' }}</td>
                                         </tr>
                                         <tr>
                                             <th class="bg-light">Correo Electrónico</th>
                                             <td>{{ $user->email }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Teléfono de Contacto</th>
+                                            <td>{{ $user->phone ?: 'No especificado' }}</td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Rol</th>
+                                            <td>
+                                                @if($user->role)
+                                                    <span class="badge badge-dark">{{ $user->role }}</span>
+                                                @else
+                                                    <span class="text-muted">No especificado</span>
+                                                @endif
+                                            </td>
                                         </tr>
                                         <tr>
                                             <th class="bg-light">Verificado</th>
@@ -77,6 +105,26 @@
                                             <td>
                                                 @if($user->vinculacionContrato)
                                                     <span class="badge badge-info">{{ $user->vinculacionContrato->nombre }}</span>
+                                                @else
+                                                    <span class="text-muted">No especificado</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Cargo/Especialidad</th>
+                                            <td>
+                                                @if($user->cargo)
+                                                    <span class="badge badge-warning">{{ $user->cargo->nombre }}</span>
+                                                @else
+                                                    <span class="text-muted">No especificado</span>
+                                                @endif
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th class="bg-light">Actividad</th>
+                                            <td>
+                                                @if($user->actividad)
+                                                    <span class="badge badge-secondary">{{ $user->actividad->nombre }}</span>
                                                 @else
                                                     <span class="text-muted">No especificado</span>
                                                 @endif
