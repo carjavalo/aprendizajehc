@@ -12,7 +12,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage;
+use App\Services\MediaStorage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\View\View;
@@ -315,8 +315,7 @@ class CursoController extends Controller
 
             // Manejar la imagen de portada
             if ($request->hasFile('imagen_portada')) {
-                $data['imagen_portada'] = $request->file('imagen_portada')
-                    ->store('cursos/portadas', 'public');
+                $data['imagen_portada'] = MediaStorage::store($request->file('imagen_portada'), 'cursos/portadas');
             }
 
             // Crear el curso
@@ -526,12 +525,9 @@ class CursoController extends Controller
             // Manejar la imagen de portada
             if ($request->hasFile('imagen_portada')) {
                 // Eliminar imagen anterior si existe
-                if ($curso->imagen_portada) {
-                    Storage::disk('public')->delete($curso->imagen_portada);
-                }
-                
-                $data['imagen_portada'] = $request->file('imagen_portada')
-                    ->store('cursos/portadas', 'public');
+                MediaStorage::delete($curso->imagen_portada);
+
+                $data['imagen_portada'] = MediaStorage::store($request->file('imagen_portada'), 'cursos/portadas');
             }
 
             $curso->update($data);
@@ -557,9 +553,7 @@ class CursoController extends Controller
         Gate::authorize('cursos.delete');
         try {
             // Eliminar imagen de portada si existe
-            if ($curso->imagen_portada) {
-                Storage::disk('public')->delete($curso->imagen_portada);
-            }
+            MediaStorage::delete($curso->imagen_portada);
 
             $curso->delete();
 
@@ -608,7 +602,7 @@ class CursoController extends Controller
             $materialFiles = $request->file('material_files');
             if (isset($materialData['file']) && $materialFiles && isset($materialFiles[$index])) {
                 $file = $materialFiles[$index];
-                $path = $file->store("cursos/{$curso->id}/materiales", 'public');
+                $path = MediaStorage::store($file, "cursos/{$curso->id}/materiales");
 
                 $data['archivo_path'] = $path;
                 $data['archivo_nombre'] = $file->getClientOriginalName();

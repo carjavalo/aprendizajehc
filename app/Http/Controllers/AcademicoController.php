@@ -7,12 +7,12 @@ use App\Models\CursoMaterial;
 use App\Models\CursoActividad;
 use App\Models\CursoEstudiante;
 use App\Models\CursoAsignacion;
+use App\Services\MediaStorage;
 use App\Services\OperationLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Yajra\DataTables\Facades\DataTables;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
@@ -366,18 +366,15 @@ class AcademicoController extends Controller
             abort(403, 'No tienes acceso a este material');
         }
 
-        if (!$material->archivo_path || !Storage::disk('public')->exists($material->archivo_path)) {
+        if (!$material->archivo_path) {
             abort(404, 'Archivo no disponible');
         }
 
         $nombre = $material->archivo_nombre ?: basename($material->archivo_path);
-        $mime = Storage::disk('public')->mimeType($material->archivo_path) ?: 'application/octet-stream';
 
         $esEstudiante = ($user->role === 'Estudiantes');
 
         $headers = [
-            'Content-Type' => $mime,
-            'Content-Disposition' => 'inline; filename="' . addslashes($nombre) . '"',
             'X-Content-Type-Options' => 'nosniff',
             'X-Frame-Options' => 'SAMEORIGIN',
         ];
@@ -388,10 +385,19 @@ class AcademicoController extends Controller
             $headers['Pragma'] = 'no-cache';
         }
 
-        return response()->file(
-            Storage::disk('public')->path($material->archivo_path),
-            $headers
-        );
+        if (MediaStorage::isCloud()) {
+            return MediaStorage::cloudResponse($material->archivo_path, $nombre, $headers);
+        }
+
+        $disk = MediaStorage::disk();
+        if (!$disk->exists($material->archivo_path)) {
+            abort(404, 'Archivo no disponible');
+        }
+
+        return response()->file($disk->path($material->archivo_path), $headers + [
+            'Content-Type' => $disk->mimeType($material->archivo_path) ?: 'application/octet-stream',
+            'Content-Disposition' => MediaStorage::disposition('inline', $nombre),
+        ]);
     }
 
     /**
@@ -565,7 +571,7 @@ class AcademicoController extends Controller
         ], [
             'contenido' => $request->input('contenido', ''),
             'observaciones_estudiante' => $request->input('observaciones', ''),
-            'archivo_path' => $request->hasFile('archivo') ? $request->file('archivo')->store('entregas', 'public') : null,
+            'archivo_path' => $request->hasFile('archivo') ? MediaStorage::store($request->file('archivo'), 'entregas') : null,
             'entregado_at' => now(),
             'updated_at' => now(),
         ]);

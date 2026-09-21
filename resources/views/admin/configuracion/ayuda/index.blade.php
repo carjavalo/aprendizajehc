@@ -69,14 +69,14 @@
                                         <iframe src="{{ $bannerActivo->getYoutubeEmbedUrl() }}" style="width: 100%; height: 280px; border: none; border-radius: 8px;" allowfullscreen></iframe>
                                     @elseif($bannerActivo->media_archivo)
                                         <video controls style="width: 100%; height: 280px; object-fit: contain; border-radius: 8px;">
-                                            <source src="/media/{{ $bannerActivo->media_archivo }}" type="video/mp4">
+                                            <source src="{{ $bannerActivo->media_archivo_url }}" type="video/mp4">
                                         </video>
                                     @else
                                         <span style="color: rgba(255,255,255,0.5); font-size: 1.2rem;">VIDEO ILUSTRATIVO</span>
                                     @endif
                                 @else
                                     @if($bannerActivo->media_archivo)
-                                        <img src="/media/{{ $bannerActivo->media_archivo }}" style="width: 100%; height: 280px; object-fit: contain; border-radius: 8px;" alt="{{ $bannerActivo->media_titulo }}">
+                                        <img src="{{ $bannerActivo->media_archivo_url }}" style="width: 100%; height: 280px; object-fit: contain; border-radius: 8px;" alt="{{ $bannerActivo->media_titulo }}">
                                     @else
                                         <span style="color: rgba(255,255,255,0.5); font-size: 1.2rem;">IMAGEN ILUSTRATIVA</span>
                                     @endif
@@ -781,9 +781,9 @@ $(document).ready(function() {
                     html = '<iframe src="https://www.youtube.com/embed/' + videoId + '" style="width:100%;height:450px;border:none;" allowfullscreen></iframe>';
                 }
             } else if (banner.media_tipo === 'video' && banner.media_archivo) {
-                html = '<video controls autoplay style="max-width:100%;max-height:450px;"><source src="/media/' + banner.media_archivo + '" type="video/mp4"></video>';
+                html = '<video controls autoplay style="max-width:100%;max-height:450px;"><source src="' + banner.media_archivo_url + '" type="video/mp4"></video>';
             } else if (banner.media_tipo === 'imagen' && banner.media_archivo) {
-                html = '<img src="/media/' + banner.media_archivo + '" style="max-width:100%;max-height:450px;" alt="Vista previa">';
+                html = '<img src="' + banner.media_archivo_url + '" style="max-width:100%;max-height:450px;" alt="Vista previa">';
             } else {
                 html = '<p class="text-white mt-5">No hay media configurado para este banner.</p>';
             }

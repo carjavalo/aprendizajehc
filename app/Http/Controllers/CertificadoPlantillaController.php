@@ -236,12 +236,7 @@ class CertificadoPlantillaController extends Controller
 
         // Regenerar archivo de fondo si hubo cambios en elementos_json
         try {
-            // Eliminar archivo previo para forzar regeneración
-            $relativePath = 'certificados/fondos/plantilla_' . $plantilla->id . '.png';
-            if (\Storage::disk('public')->exists($relativePath)) {
-                \Storage::disk('public')->delete($relativePath);
-            }
-            $plantilla->fondo_url;
+            $plantilla->regenerarFondo();
         } catch (\Throwable $e) {
             \Log::warning('No se pudo regenerar fondo para plantilla #' . $plantilla->id);
         }

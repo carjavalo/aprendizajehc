@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MediaStorage;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -32,6 +33,18 @@ class WelcomeBanner extends Model
         'fecha_inicio' => 'date',
         'fecha_fin' => 'date',
     ];
+
+    protected $appends = [
+        'media_archivo_url',
+    ];
+
+    /**
+     * URL del archivo subido (video/imagen) en el almacenamiento.
+     */
+    public function getMediaArchivoUrlAttribute(): ?string
+    {
+        return MediaStorage::url($this->media_archivo);
+    }
 
     /**
      * Obtener solo los banners activos ordenados.
@@ -78,7 +91,7 @@ class WelcomeBanner extends Model
         }
 
         if ($this->media_archivo) {
-            return asset('storage/' . $this->media_archivo);
+            return $this->media_archivo_url;
         }
 
         return null;

@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Curso;
 use App\Models\Inscripcion;
 use App\Models\User;
+use App\Services\MediaStorage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -123,6 +124,7 @@ class ControlPedagogicoController extends Controller
         // Preparar respuesta base
         $response = [
             'archivo_path' => $entrega->archivo_path,
+            'archivo_url' => MediaStorage::url($entrega->archivo_path),
             'fecha_entrega' => $entrega->entregado_at ? date('d/m/Y H:i', strtotime($entrega->entregado_at)) : null,
             'calificacion' => $entrega->calificacion,
             'retroalimentacion' => $entrega->comentarios_instructor,

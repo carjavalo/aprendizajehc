@@ -79,7 +79,7 @@
                     <div class="product-card" data-categoria="{{ $producto['categoria'] }}">
                         <div class="product-image">
                             @if($producto['imagen'])
-                                <img src="{{ url('media/' . $producto['imagen']) }}" alt="{{ $producto['titulo'] }}">
+                                <img src="{{ \App\Services\MediaStorage::url($producto['imagen']) }}" alt="{{ $producto['titulo'] }}">
                             @else
                                 <div class="product-placeholder">
                                     <span class="material-symbols-outlined">school</span>
@@ -316,7 +316,7 @@
         /* Hero Banner - Reducido 15% */
         .hero-banner {
             background: linear-gradient(135deg, rgba(44, 67, 112, 0.95), rgba(30, 47, 77, 0.85)), 
-                        url('{{ isset($configuracion["banner_imagen"]) && $configuracion["banner_imagen"] ? (str_starts_with($configuracion["banner_imagen"], "http") ? $configuracion["banner_imagen"] : asset("storage/" . $configuracion["banner_imagen"])) : "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=1200" }}');
+                        url('{{ isset($configuracion["banner_imagen"]) && $configuracion["banner_imagen"] ? \App\Services\MediaStorage::url($configuracion["banner_imagen"]) : "https://images.unsplash.com/photo-1576091160399-112ba8d25d1f?w=1200" }}');
             background-size: cover;
             background-position: center;
             border-radius: 14px;

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Services\MediaStorage;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -205,10 +206,10 @@ class Curso extends Model
 
     public function getImagenPortadaUrlAttribute(): string
     {
-        if ($this->imagen_portada && file_exists(public_path('storage/' . $this->imagen_portada))) {
-            return asset('storage/' . $this->imagen_portada);
+        if ($this->imagen_portada) {
+            return MediaStorage::url($this->imagen_portada);
         }
-        
+
         return asset('assets/img/default-course.jpg');
     }
 

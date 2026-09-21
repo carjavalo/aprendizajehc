@@ -6,12 +6,12 @@ use App\Models\Curso;
 use App\Models\CursoMaterial;
 use App\Models\CursoForo;
 use App\Models\CursoActividad;
+use App\Services\MediaStorage;
 use App\Services\OperationLogger;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -204,8 +204,8 @@ class CursoClassroomController extends Controller
                 
                 // Generar nombre único para evitar conflictos
                 $fileName = time() . '_' . Str::random(10) . '.' . $extension;
-                $path = $file->storeAs('cursos/' . $curso->id . '/materiales', $fileName, 'public');
-                
+                $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/materiales', $fileName);
+
                 $data['archivo_path'] = $path;
                 $data['archivo_nombre'] = $file->getClientOriginalName();
                 $data['archivo_extension'] = $extension;
@@ -299,9 +299,7 @@ class CursoClassroomController extends Controller
 
         try {
             // Eliminar archivo físico si existe
-            if ($material->archivo_path && file_exists(public_path('storage/' . $material->archivo_path))) {
-                unlink(public_path('storage/' . $material->archivo_path));
-            }
+            MediaStorage::delete($material->archivo_path);
 
             // Eliminar registro de la base de datos
             $material->delete();
@@ -435,13 +433,11 @@ class CursoClassroomController extends Controller
                 }
                 
                 // Eliminar archivo anterior si existe
-                if ($material->archivo_path && Storage::disk('public')->exists($material->archivo_path)) {
-                    Storage::disk('public')->delete($material->archivo_path);
-                }
-                
+                MediaStorage::delete($material->archivo_path);
+
                 // Generar nombre único para evitar conflictos
                 $fileName = time() . '_' . Str::random(10) . '.' . $extension;
-                $path = $file->storeAs('cursos/' . $curso->id . '/materiales', $fileName, 'public');
+                $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/materiales', $fileName);
                 
                 $material->archivo_path = $path;
                 $material->archivo_nombre = $file->getClientOriginalName();
@@ -822,7 +818,7 @@ class CursoClassroomController extends Controller
             // Manejar archivo adjunto
             if ($request->hasFile('archivo')) {
                 $file = $request->file('archivo');
-                $path = $file->store('cursos/' . $curso->id . '/entregas', 'public');
+                $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/entregas');
                 $data['archivo_path'] = $path;
                 $data['archivo_nombre'] = $file->getClientOriginalName();
             }

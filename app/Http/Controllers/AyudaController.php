@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\WelcomeBanner;
-use Illuminate\Support\Facades\Storage;
+use App\Services\MediaStorage;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 
@@ -127,9 +127,7 @@ class AyudaController extends Controller
 
             // Subir archivo si se proporciona
             if ($request->hasFile('media_archivo')) {
-                $archivo = $request->file('media_archivo');
-                $path = $archivo->store('welcome_banners', 'public');
-                $data['media_archivo'] = $path;
+                $data['media_archivo'] = MediaStorage::store($request->file('media_archivo'), 'welcome_banners');
             }
 
             WelcomeBanner::create($data);
@@ -179,12 +177,8 @@ class AyudaController extends Controller
             // Subir nuevo archivo si se proporciona
             if ($request->hasFile('media_archivo')) {
                 // Eliminar archivo anterior
-                if ($banner->media_archivo) {
-                    Storage::disk('public')->delete($banner->media_archivo);
-                }
-                $archivo = $request->file('media_archivo');
-                $path = $archivo->store('welcome_banners', 'public');
-                $data['media_archivo'] = $path;
+                MediaStorage::delete($banner->media_archivo);
+                $data['media_archivo'] = MediaStorage::store($request->file('media_archivo'), 'welcome_banners');
             }
 
             $banner->update($data);
@@ -213,9 +207,7 @@ class AyudaController extends Controller
         $banner = WelcomeBanner::findOrFail($id);
 
         // Eliminar archivo asociado
-        if ($banner->media_archivo) {
-            Storage::disk('public')->delete($banner->media_archivo);
-        }
+        MediaStorage::delete($banner->media_archivo);
 
         $banner->delete();
 

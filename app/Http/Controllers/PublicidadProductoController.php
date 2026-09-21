@@ -2,8 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\MediaStorage;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
@@ -33,7 +33,7 @@ class PublicidadProductoController extends Controller
         return datatables()->of($productos)
             ->addColumn('imagen_html', function($producto) {
                 if ($producto['imagen']) {
-                    return '<img src="' . asset('storage/' . $producto['imagen']) . '" class="img-thumbnail" style="max-width: 60px;">';
+                    return '<img src="' . e(MediaStorage::url($producto['imagen'])) . '" class="img-thumbnail" style="max-width: 60px;">';
                 }
                 return '<span class="badge badge-secondary">Sin imagen</span>';
             })
@@ -107,8 +107,7 @@ class PublicidadProductoController extends Controller
             if ($request->hasFile('imagen')) {
                 $file = $request->file('imagen');
                 $fileName = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('publicidad', $fileName, 'public');
-                $nuevoProducto['imagen'] = $path;
+                $nuevoProducto['imagen'] = MediaStorage::store($file, 'publicidad', $fileName);
             }
 
             $productos[] = $nuevoProducto;
@@ -174,14 +173,11 @@ class PublicidadProductoController extends Controller
             // Manejar nueva imagen
             if ($request->hasFile('imagen')) {
                 // Eliminar imagen anterior
-                if ($productos[$index]['imagen']) {
-                    Storage::disk('public')->delete($productos[$index]['imagen']);
-                }
-                
+                MediaStorage::delete($productos[$index]['imagen']);
+
                 $file = $request->file('imagen');
                 $fileName = time() . '_' . Str::random(10) . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('publicidad', $fileName, 'public');
-                $productos[$index]['imagen'] = $path;
+                $productos[$index]['imagen'] = MediaStorage::store($file, 'publicidad', $fileName);
             }
 
             $this->saveProductos($productos);
@@ -217,9 +213,7 @@ class PublicidadProductoController extends Controller
             }
 
             // Eliminar imagen si existe
-            if ($productos[$index]['imagen']) {
-                Storage::disk('public')->delete($productos[$index]['imagen']);
-            }
+            MediaStorage::delete($productos[$index]['imagen']);
 
             array_splice($productos, $index, 1);
             $this->saveProductos($productos);
@@ -267,14 +261,12 @@ class PublicidadProductoController extends Controller
             $config['mostrar_seccion_vendedor'] = $request->boolean('mostrar_seccion_vendedor', true);
 
             if ($request->hasFile('banner_imagen')) {
-                if ($config['banner_imagen'] && !str_starts_with($config['banner_imagen'], 'http')) {
-                    Storage::disk('public')->delete($config['banner_imagen']);
-                }
-                
+                // Las URLs externas (http...) se ignoran al eliminar
+                MediaStorage::delete($config['banner_imagen'] ?? null);
+
                 $file = $request->file('banner_imagen');
                 $fileName = 'banner_' . time() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs('publicidad', $fileName, 'public');
-                $config['banner_imagen'] = $path;
+                $config['banner_imagen'] = MediaStorage::store($file, 'publicidad', $fileName);
             } elseif ($request->banner_url_imagen) {
                 $config['banner_imagen'] = $request->banner_url_imagen;
             }

@@ -1811,7 +1811,7 @@
                 contenidoHTML += `
                     <div class="mb-3">
                         <h6><i class="fas fa-file"></i> Archivo Entregado:</h6>
-                        <a href="/storage/${entrega.archivo_path}" target="_blank" class="btn btn-primary btn-sm">
+                        <a href="${entrega.archivo_url}" target="_blank" class="btn btn-primary btn-sm">
                             <i class="fas fa-download"></i> Descargar Archivo
                         </a>
                     </div>

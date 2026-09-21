@@ -460,7 +460,7 @@
                                             id="ytframe_{{ $idx }}"></iframe>
                                 @elseif($b->media_archivo)
                                     <video {{ $idx === 0 ? 'autoplay' : '' }} muted playsinline controls>
-                                        <source src="/media/{{ $b->media_archivo }}" type="video/mp4">
+                                        <source src="{{ $b->media_archivo_url }}" type="video/mp4">
                                     </video>
                                 @else
                                     <div class="media-placeholder">
@@ -470,7 +470,7 @@
                                 @endif
                             @else
                                 @if($b->media_archivo)
-                                    <img src="/media/{{ $b->media_archivo }}" alt="{{ $b->media_titulo ?? 'Imagen ilustrativa' }}">
+                                    <img src="{{ $b->media_archivo_url }}" alt="{{ $b->media_titulo ?? 'Imagen ilustrativa' }}">
                                 @else
                                     <div class="media-placeholder">
                                         <i class="fas fa-image"></i>

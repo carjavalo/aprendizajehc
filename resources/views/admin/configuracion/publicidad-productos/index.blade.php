@@ -163,7 +163,7 @@
                         <tr>
                             <td>
                                 @if($producto['imagen'])
-                                    <img src="{{ url('media/' . $producto['imagen']) }}" class="img-thumbnail" style="max-width: 60px;">
+                                    <img src="{{ \App\Services\MediaStorage::url($producto['imagen']) }}" class="img-thumbnail" style="max-width: 60px;">
                                 @else
                                     <span class="badge badge-secondary">Sin imagen</span>
                                 @endif
@@ -744,7 +744,8 @@ $(document).ready(function() {
         $('#url_externa').val(producto.url_externa);
         
         if (producto.imagen) {
-            const imgUrl = '/media/' + producto.imagen;
+            // /media/ redirige al archivo en S3
+            const imgUrl = '{{ url('media') }}/' + producto.imagen;
             $('#img-preview-modal').attr('src', imgUrl);
             $('#preview-product-image').attr('src', imgUrl).css('opacity', '1');
             $('#image-preview-container').show();

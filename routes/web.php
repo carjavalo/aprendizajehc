@@ -20,12 +20,22 @@ use App\Http\Controllers\SedeController;
 use App\Http\Controllers\PublicidadProductoController;
 use App\Http\Controllers\CertificadoEditorController;
 use App\Http\Controllers\VerificacionCertificadoController;
+use App\Services\MediaStorage;
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Storage;
 
-// ── Ruta para servir archivos de storage público (alternativa al symlink en cPanel) ──
+// ── Ruta para servir los archivos subidos (banners, publicidad, portadas...) ──
 Route::get('/media/{path}', function ($path) {
-    $disk = Storage::disk('public');
+    if (!MediaStorage::isSafePath($path)) {
+        abort(404);
+    }
+
+    // S3: redirigir a la URL firmada (el navegador puede reutilizar la redirección unos minutos)
+    if (MediaStorage::isCloud()) {
+        return redirect()->away(MediaStorage::temporaryUrl($path))
+            ->header('Cache-Control', 'private, max-age=600');
+    }
+
+    $disk = MediaStorage::disk();
     if (!$disk->exists($path)) {
         abort(404);
     }
