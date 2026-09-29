@@ -708,6 +708,62 @@ class AsignacionCursoController extends Controller
     }
 
     /**
+     * Resumen por estudiante de los cursos activos asignados y los que faltan por asignar.
+     * Se considera asignado un curso con asignación activa o inscripción activa.
+     */
+    public function getPorAsignar(): JsonResponse
+    {
+        $this->verificarAcceso();
+
+        $cursos = Curso::where('estado', 'activo')
+            ->orderBy('titulo')
+            ->pluck('titulo', 'id');
+        $cursoIds = $cursos->keys()->all();
+
+        $estudiantes = User::with(['cargo:id,nombre', 'servicioArea:id,nombre'])
+            ->where('role', 'Estudiante')
+            ->select('id', 'name', 'apellido1', 'apellido2', 'numero_documento', 'cargo_id', 'servicio_area_id')
+            ->orderBy('name')
+            ->orderBy('apellido1')
+            ->get();
+
+        // Pares estudiante => [curso_id => true] con asignación o inscripción activa
+        $asignados = [];
+        CursoAsignacion::where('estado', 'activo')
+            ->whereIn('curso_id', $cursoIds)
+            ->get(['estudiante_id', 'curso_id'])
+            ->each(function ($a) use (&$asignados) {
+                $asignados[$a->estudiante_id][$a->curso_id] = true;
+            });
+        DB::table('curso_estudiantes')
+            ->where('estado', 'activo')
+            ->whereIn('curso_id', $cursoIds)
+            ->get(['estudiante_id', 'curso_id'])
+            ->each(function ($i) use (&$asignados) {
+                $asignados[$i->estudiante_id][$i->curso_id] = true;
+            });
+
+        return response()->json([
+            'success' => true,
+            'total_cursos' => count($cursoIds),
+            'cursos' => $cursos,
+            'estudiantes' => $estudiantes->map(function ($est) use ($cursoIds, $asignados) {
+                $idsAsignados = array_values(array_filter($cursoIds, fn ($id) => isset($asignados[$est->id][$id])));
+
+                return [
+                    'id' => $est->id,
+                    'nombre' => trim($est->name . ' ' . $est->apellido1 . ' ' . ($est->apellido2 ?? '')),
+                    'documento' => $est->numero_documento,
+                    'cargo' => $est->cargo->nombre ?? 'Sin cargo',
+                    'servicio' => $est->servicioArea->nombre ?? 'Sin servicio',
+                    'asignados' => $idsAsignados,
+                    'sin_asignar' => array_values(array_diff($cursoIds, $idsAsignados)),
+                ];
+            }),
+        ]);
+    }
+
+    /**
      * Obtener historial de asignaciones
      */
     public function getHistorial(Request $request): JsonResponse

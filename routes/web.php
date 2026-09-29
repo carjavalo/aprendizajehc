@@ -284,6 +284,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::post('/asignar-todos', [AsignacionCursoController::class, 'asignarATodos'])->name('asignar-todos');
             Route::post('/remover', [AsignacionCursoController::class, 'removerAsignacion'])->name('remover');
             Route::get('/historial', [AsignacionCursoController::class, 'getHistorial'])->name('historial');
+            Route::get('/por-asignar', [AsignacionCursoController::class, 'getPorAsignar'])->name('por-asignar');
         });
 
         // Rutas de Gestión de Componentes

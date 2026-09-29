@@ -97,6 +97,9 @@
                     <div class="card-header">
                         <h3 class="card-title"><i class="fas fa-book-open"></i> 2. Seleccionar Cursos</h3>
                         <div class="card-tools">
+                            <button type="button" class="btn btn-sm btn-warning mr-2" id="btn-por-asignar">
+                                <i class="fas fa-tasks"></i> Por Asignar
+                            </button>
                             <span class="badge badge-primary" id="periodo-actual">Período Activo</span>
                         </div>
                     </div>
@@ -192,6 +195,51 @@
 
     <!-- Input oculto para el estudiante seleccionado -->
     <input type="hidden" id="estudiante-seleccionado-id" value="">
+
+    <!-- Modal: cursos por asignar por estudiante -->
+    <div class="modal fade" id="porAsignarModal" tabindex="-1" role="dialog" aria-labelledby="porAsignarModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="porAsignarModalLabel"><i class="fas fa-tasks"></i> Cursos por Asignar</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex flex-wrap align-items-center mb-3">
+                        <div class="mr-3 mb-2">
+                            <label for="filtro-por-asignar" class="mb-0 mr-1">Mostrar:</label>
+                            <select class="form-control form-control-sm d-inline-block w-auto" id="filtro-por-asignar">
+                                <option value="pendientes" selected>Con cursos sin asignar</option>
+                                <option value="completos">Con todos los cursos asignados</option>
+                                <option value="todos">Todos</option>
+                            </select>
+                        </div>
+                        <div class="mb-2 text-muted small" id="resumen-por-asignar"></div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm w-100" id="tabla-por-asignar">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Nombre</th>
+                                    <th>Cargo/Especialidad</th>
+                                    <th>Servicio/Área</th>
+                                    <th>Cursos Asignados</th>
+                                    <th>Cursos sin Asignar</th>
+                                    <th class="text-center">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 @stop
 
 @section('css')
@@ -230,6 +278,16 @@
     }
     .curso-categoria-badge {
         font-size: 0.7rem;
+    }
+    #tabla-por-asignar .lista-cursos {
+        max-height: 120px;
+        overflow-y: auto;
+    }
+    #tabla-por-asignar .lista-cursos .badge {
+        white-space: normal;
+        text-align: left;
+        margin: 0 0.2rem 0.2rem 0;
+        font-weight: normal;
     }
 </style>
 @stop
@@ -740,6 +798,113 @@ $(document).ready(function() {
         if (!$(e.target).closest('#buscar-estudiante, #resultados-busqueda').length) {
             $('#resultados-busqueda').hide();
         }
+    });
+
+    // ===== Modal "Por Asignar": cursos asignados y sin asignar por estudiante =====
+    let porAsignarData = [];
+    let porAsignarCursos = {};
+    let tablaPorAsignar = null;
+
+    function escaparHtml(texto) {
+        return $('<div>').text(texto == null ? '' : String(texto)).html();
+    }
+
+    function listaCursosHtml(ids, clase) {
+        if (!ids.length) {
+            return '<span class="text-muted small">Ninguno</span>';
+        }
+        const badges = ids.map(id => `<span class="badge ${clase}">${escaparHtml(porAsignarCursos[id] || ('Curso #' + id))}</span>`).join('');
+        return `<div class="mb-1"><strong>${ids.length}</strong></div><div class="lista-cursos">${badges}</div>`;
+    }
+
+    function renderizarPorAsignar() {
+        const filtro = $('#filtro-por-asignar').val();
+        const filas = porAsignarData.filter(e =>
+            filtro === 'todos' ||
+            (filtro === 'pendientes' && e.sin_asignar.length > 0) ||
+            (filtro === 'completos' && e.sin_asignar.length === 0)
+        );
+
+        const pendientes = porAsignarData.filter(e => e.sin_asignar.length > 0).length;
+        $('#resumen-por-asignar').html(
+            `${porAsignarData.length} estudiante(s) · ${Object.keys(porAsignarCursos).length} curso(s) activo(s) · ` +
+            `<span class="text-danger font-weight-bold">${pendientes} con cursos sin asignar</span>`
+        );
+
+        const datos = filas.map(e => [
+            `<strong>${escaparHtml(e.nombre)}</strong>` + (e.documento ? `<br><small class="text-muted">${escaparHtml(e.documento)}</small>` : ''),
+            escaparHtml(e.cargo),
+            escaparHtml(e.servicio),
+            listaCursosHtml(e.asignados, 'badge-success'),
+            listaCursosHtml(e.sin_asignar, 'badge-danger'),
+            e.sin_asignar.length
+                ? `<button type="button" class="btn btn-xs btn-primary btn-asignar-pendientes" data-id="${e.id}"><i class="fas fa-user-check"></i> Asignar</button>`
+                : '<span class="badge badge-success"><i class="fas fa-check"></i> Completo</span>'
+        ]);
+
+        if (tablaPorAsignar) {
+            tablaPorAsignar.clear().rows.add(datos).draw();
+            return;
+        }
+        tablaPorAsignar = $('#tabla-por-asignar').DataTable({
+            data: datos,
+            pageLength: 10,
+            autoWidth: false,
+            order: [[0, 'asc']],
+            columnDefs: [
+                { targets: [3, 4], width: '25%' },
+                { targets: 5, orderable: false, searchable: false, className: 'text-center' }
+            ],
+            language: { url: '{{ asset('js/datatables-spanish.json') }}' }
+        });
+    }
+
+    $('#btn-por-asignar').on('click', function() {
+        const $btn = $(this);
+        $btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Cargando...');
+        $.ajax({
+            url: '{{ route("configuracion.asignacion-cursos.por-asignar") }}',
+            method: 'GET',
+            success: function(response) {
+                if (!response.success) {
+                    Swal.fire('Error', response.message || 'No se pudo cargar la información', 'error');
+                    return;
+                }
+                porAsignarCursos = response.cursos || {};
+                porAsignarData = response.estudiantes || [];
+                $('#porAsignarModal').modal('show');
+                renderizarPorAsignar();
+            },
+            error: function(xhr) {
+                Swal.fire('Error', xhr.responseJSON?.message || 'No se pudo cargar la información', 'error');
+            },
+            complete: function() {
+                $btn.prop('disabled', false).html('<i class="fas fa-tasks"></i> Por Asignar');
+            }
+        });
+    });
+
+    // Ajustar columnas cuando el modal termina de mostrarse
+    $('#porAsignarModal').on('shown.bs.modal', function() {
+        if (tablaPorAsignar) {
+            tablaPorAsignar.columns.adjust();
+        }
+    });
+
+    // Evitar el aviso de aria-hidden: quitar el foco antes de ocultar el modal
+    $('#porAsignarModal').on('hide.bs.modal', function() {
+        if (this.contains(document.activeElement)) {
+            document.activeElement.blur();
+        }
+    });
+
+    $('#filtro-por-asignar').on('change', renderizarPorAsignar);
+
+    // Seleccionar el estudiante en el formulario principal para asignarle cursos
+    $(document).on('click', '.btn-asignar-pendientes', function() {
+        const estudianteId = $(this).data('id');
+        $('#porAsignarModal').modal('hide');
+        seleccionarEstudiante(estudianteId);
     });
 });
 </script>
