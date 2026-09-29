@@ -18,9 +18,9 @@ use Illuminate\Support\Str;
 class CursoClassroomController extends Controller
 {
     /**
-     * Tamaño máximo (KB) de los archivos de material del curso: 100 MB.
+     * Tamaño máximo (KB) de los archivos de material del curso: 310 MB.
      */
-    private const MATERIAL_MAX_KB = 102400;
+    private const MATERIAL_MAX_KB = 317440;
 
     /**
      * Extensiones permitidas para materiales y los MIME aceptados para cada una.
@@ -59,8 +59,8 @@ class CursoClassroomController extends Controller
         return [
             'archivo.required_without' => 'Debes seleccionar un archivo o proporcionar una URL externa.',
             'archivo.file' => 'El archivo no se recibió correctamente.',
-            'archivo.uploaded' => 'El archivo no se pudo subir. Verifica que no supere 100 MB.',
-            'archivo.max' => 'El archivo no puede superar 100 MB.',
+            'archivo.uploaded' => 'El archivo no se pudo subir. Verifica que no supere 310 MB.',
+            'archivo.max' => 'El archivo no puede superar 310 MB.',
         ];
     }
 

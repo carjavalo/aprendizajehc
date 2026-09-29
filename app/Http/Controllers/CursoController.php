@@ -292,7 +292,7 @@ class CursoController extends Controller
             'forum_posts_data' => 'nullable|string',
             'activities_data' => 'nullable|string',
             'material_files' => 'nullable|array',
-            'material_files.*' => 'nullable|file|max:204800', // 200MB max
+            'material_files.*' => 'nullable|file|max:317440', // 310MB max
             'nota_minima_aprobacion' => 'nullable|numeric|min:0|max:5',
         ]);
 

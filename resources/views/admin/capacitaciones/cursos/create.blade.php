@@ -763,7 +763,7 @@
                         <div class="dz-message">
                             <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
                             <h5>Arrastra archivos aquí o haz clic para seleccionar</h5>
-                            <p class="text-muted">Soporta múltiples archivos. Máximo 10MB por archivo.</p>
+                            <p class="text-muted">Soporta múltiples archivos. Máximo 310MB por archivo.</p>
                         </div>
                     </div>
                 </div>

@@ -141,7 +141,7 @@
                     <hr>
                     <small class="text-muted">
                         <i class="fas fa-exclamation-triangle"></i> 
-                        Tamaño máximo: 100MB por archivo
+                        Tamaño máximo: 310MB por archivo
                     </small>
                 </div>
             </div>
@@ -250,7 +250,7 @@
                                                         <label class="custom-file-label" for="archivo">Seleccionar archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
-                                                    <small class="form-text text-muted">Máximo 100MB. Formatos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, WEBP, MP4, M4V, MOV, AVI, WEBM, WMV (se recomienda convertir a MP4), TXT, ZIP, RAR. <strong>Tipo "Documento": solo PDF.</strong></small>
+                                                    <small class="form-text text-muted">Máximo 310MB. Formatos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, WEBP, MP4, M4V, MOV, AVI, WEBM, WMV (se recomienda convertir a MP4), TXT, ZIP, RAR. <strong>Tipo "Documento": solo PDF.</strong></small>
                                                 </div>
                                             </div>
                                             <div class="tab-pane" id="url-tab">
@@ -399,7 +399,7 @@
                                                         <label class="custom-file-label" for="edit_archivo">Seleccionar nuevo archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
-                                                    <small class="form-text text-muted">Deja vacío para mantener el archivo actual. Máximo 100MB.</small>
+                                                    <small class="form-text text-muted">Deja vacío para mantener el archivo actual. Máximo 310MB.</small>
                                                 </div>
                                             </div>
                                             <div class="tab-pane" id="edit-url-tab">
@@ -543,13 +543,13 @@
 <script>
     // Límite de tamaño de los archivos de material (debe coincidir con el backend).
     // Se usa var/function porque esta vista puede recargarse dentro de una pestaña.
-    var MATERIAL_MAX_BYTES = 100 * 1024 * 1024;
+    var MATERIAL_MAX_BYTES = 310 * 1024 * 1024;
 
     // Devuelve un mensaje de error si el archivo supera el límite, o null
     function validarTamanoMaterial(archivo) {
         if (archivo && archivo.size > MATERIAL_MAX_BYTES) {
             var mb = (archivo.size / 1024 / 1024).toFixed(1);
-            return 'El archivo pesa ' + mb + ' MB y el máximo permitido es 100 MB.';
+            return 'El archivo pesa ' + mb + ' MB y el máximo permitido es 310 MB.';
         }
         return null;
     }
@@ -558,7 +558,7 @@
     function mostrarErrorMaterial($form, xhr, mensajeGenerico) {
         var json = xhr.responseJSON || {};
         if (xhr.status === 413) {
-            Swal.fire('Archivo demasiado grande', 'El archivo supera el tamaño máximo permitido (100 MB).', 'error');
+            Swal.fire('Archivo demasiado grande', 'El archivo supera el tamaño máximo permitido (310 MB).', 'error');
             return;
         }
         if (xhr.status === 422 && json.errors) {
