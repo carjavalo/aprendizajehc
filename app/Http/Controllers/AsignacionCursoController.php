@@ -12,6 +12,13 @@ use Illuminate\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Yajra\DataTables\Facades\DataTables;
+use PhpOffice\PhpSpreadsheet\Cell\DataType;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class AsignacionCursoController extends Controller
 {
@@ -715,6 +722,97 @@ class AsignacionCursoController extends Controller
     {
         $this->verificarAcceso();
 
+        return response()->json(['success' => true] + $this->datosPorAsignar());
+    }
+
+    /**
+     * Exportar a Excel el resumen de cursos asignados / sin asignar por estudiante.
+     * filtro: pendientes | completos | todos
+     */
+    public function exportarPorAsignar(Request $request): StreamedResponse
+    {
+        $this->verificarAcceso();
+
+        $filtro = $request->get('filtro', 'todos');
+        $datos = $this->datosPorAsignar();
+        $cursos = $datos['cursos'];
+
+        $estudiantes = $datos['estudiantes']->filter(function ($e) use ($filtro) {
+            return match ($filtro) {
+                'pendientes' => count($e['sin_asignar']) > 0,
+                'completos' => count($e['sin_asignar']) === 0,
+                default => true,
+            };
+        });
+
+        $spreadsheet = new Spreadsheet();
+        $sheet = $spreadsheet->getActiveSheet();
+        $sheet->setTitle('Cursos por Asignar');
+
+        $encabezados = [
+            'Nombre', 'Documento', 'Cargo/Especialidad', 'Servicio/Área',
+            'N° Asignados', 'Cursos Asignados', 'N° sin Asignar', 'Cursos sin Asignar',
+        ];
+        $sheet->fromArray($encabezados, null, 'A1');
+        $sheet->getStyle('A1:H1')->applyFromArray([
+            'font'      => ['bold' => true, 'color' => ['rgb' => 'FFFFFF']],
+            'fill'      => ['fillType' => Fill::FILL_SOLID, 'startColor' => ['rgb' => '2c4370']],
+            'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+        ]);
+        $sheet->getRowDimension(1)->setRowHeight(22);
+
+        $nombresCursos = fn (array $ids) => implode("\n", array_map(fn ($id) => $cursos[$id] ?? "Curso #{$id}", $ids));
+
+        $fila = 2;
+        foreach ($estudiantes as $e) {
+            $sheet->fromArray([
+                $e['nombre'],
+                (string) $e['documento'],
+                $e['cargo'],
+                $e['servicio'],
+                count($e['asignados']),
+                $nombresCursos($e['asignados']),
+                count($e['sin_asignar']),
+                $nombresCursos($e['sin_asignar']),
+            ], null, "A{$fila}", true);
+            // Documento como texto para conservar ceros a la izquierda
+            $sheet->setCellValueExplicit("B{$fila}", (string) $e['documento'], DataType::TYPE_STRING);
+            $fila++;
+        }
+
+        $ultima = max($fila - 1, 1);
+        $sheet->getStyle("A1:H{$ultima}")->applyFromArray([
+            'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['rgb' => 'CCCCCC']]],
+        ]);
+        if ($fila > 2) {
+            $sheet->getStyle("A2:H{$ultima}")->getAlignment()->setVertical(Alignment::VERTICAL_TOP)->setWrapText(true);
+            $sheet->getStyle("E2:E{$ultima}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("G2:G{$ultima}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("F2:F{$ultima}")->getFont()->getColor()->setRGB('1E7E34');
+            $sheet->getStyle("H2:H{$ultima}")->getFont()->getColor()->setRGB('C82333');
+        }
+
+        foreach (['A' => 35, 'B' => 16, 'C' => 30, 'D' => 30, 'E' => 13, 'F' => 50, 'G' => 15, 'H' => 50] as $col => $ancho) {
+            $sheet->getColumnDimension($col)->setWidth($ancho);
+        }
+        $sheet->freezePane('A2');
+        $sheet->setAutoFilter("A1:H{$ultima}");
+
+        $archivo = 'cursos_por_asignar_' . date('Ymd_His') . '.xlsx';
+
+        return response()->streamDownload(function () use ($spreadsheet) {
+            (new Xlsx($spreadsheet))->save('php://output');
+        }, $archivo, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'Cache-Control' => 'max-age=0',
+        ]);
+    }
+
+    /**
+     * Cursos activos y, por cada estudiante, los IDs de cursos asignados y sin asignar.
+     */
+    private function datosPorAsignar(): array
+    {
         $cursos = Curso::where('estado', 'activo')
             ->orderBy('titulo')
             ->pluck('titulo', 'id');
@@ -743,8 +841,7 @@ class AsignacionCursoController extends Controller
                 $asignados[$i->estudiante_id][$i->curso_id] = true;
             });
 
-        return response()->json([
-            'success' => true,
+        return [
             'total_cursos' => count($cursoIds),
             'cursos' => $cursos,
             'estudiantes' => $estudiantes->map(function ($est) use ($cursoIds, $asignados) {
@@ -760,7 +857,7 @@ class AsignacionCursoController extends Controller
                     'sin_asignar' => array_values(array_diff($cursoIds, $idsAsignados)),
                 ];
             }),
-        ]);
+        ];
     }
 
     /**

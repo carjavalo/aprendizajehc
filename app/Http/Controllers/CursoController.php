@@ -602,7 +602,7 @@ class CursoController extends Controller
             $materialFiles = $request->file('material_files');
             if (isset($materialData['file']) && $materialFiles && isset($materialFiles[$index])) {
                 $file = $materialFiles[$index];
-                $path = MediaStorage::store($file, "cursos/{$curso->id}/materiales");
+                $path = MediaStorage::store($file, "cursos/{$curso->id}/materiales", MediaStorage::readableName($file, $data['titulo']));
 
                 $data['archivo_path'] = $path;
                 $data['archivo_nombre'] = $file->getClientOriginalName();

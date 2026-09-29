@@ -217,6 +217,11 @@
                             </select>
                         </div>
                         <div class="mb-2 text-muted small" id="resumen-por-asignar"></div>
+                        <div class="ml-auto mb-2">
+                            <button type="button" class="btn btn-sm btn-success" id="btn-exportar-por-asignar">
+                                <i class="fas fa-file-excel"></i> Exportar a Excel
+                            </button>
+                        </div>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-bordered table-hover table-sm w-100" id="tabla-por-asignar">
@@ -899,6 +904,13 @@ $(document).ready(function() {
     });
 
     $('#filtro-por-asignar').on('change', renderizarPorAsignar);
+
+    // Exportar a Excel respetando el filtro seleccionado
+    $('#btn-exportar-por-asignar').on('click', function() {
+        const url = '{{ route("configuracion.asignacion-cursos.por-asignar.exportar") }}'
+            + '?filtro=' + encodeURIComponent($('#filtro-por-asignar').val());
+        window.location.href = url;
+    });
 
     // Seleccionar el estudiante en el formulario principal para asignarle cursos
     $(document).on('click', '.btn-asignar-pendientes', function() {

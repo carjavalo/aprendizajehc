@@ -62,6 +62,26 @@ class MediaStorage
     }
 
     /**
+     * Nombre de archivo legible a partir del nombre original, para identificarlo
+     * fácilmente en el almacenamiento. Se normaliza (sin tildes ni espacios) y se
+     * le agrega fecha/hora y un sufijo corto para no sobrescribir otro archivo.
+     * Ej.: "Protocolo Lavado de Manos.mp4" → "protocolo-lavado-de-manos_20260929-135335_a1b2.mp4"
+     */
+    public static function readableName(UploadedFile $file, ?string $fallback = null): string
+    {
+        $extension = strtolower($file->getClientOriginalExtension() ?: ($file->guessExtension() ?: 'bin'));
+        $base = Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME));
+
+        if ($base === '' && $fallback) {
+            $base = Str::slug($fallback);
+        }
+
+        $base = Str::limit($base ?: 'archivo', 100, '');
+
+        return rtrim($base, '-') . '_' . date('Ymd-His') . '_' . Str::lower(Str::random(4)) . '.' . $extension;
+    }
+
+    /**
      * Escribe contenido (string o recurso) en $path.
      */
     public static function put(string $path, $contents): void

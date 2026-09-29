@@ -248,8 +248,8 @@ class CursoClassroomController extends Controller
                 $file = $request->file('archivo');
                 $extension = strtolower($file->getClientOriginalExtension());
 
-                // Generar nombre único para evitar conflictos
-                $fileName = time() . '_' . Str::random(10) . '.' . $extension;
+                // Nombre legible (basado en el nombre original) y único
+                $fileName = MediaStorage::readableName($file, $request->input('titulo'));
                 $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/materiales', $fileName);
 
                 $data['archivo_path'] = $path;
@@ -447,8 +447,8 @@ class CursoClassroomController extends Controller
                 $file = $request->file('archivo');
                 $extension = strtolower($file->getClientOriginalExtension());
 
-                // Generar nombre único para evitar conflictos
-                $fileName = time() . '_' . Str::random(10) . '.' . $extension;
+                // Nombre legible (basado en el nombre original) y único
+                $fileName = MediaStorage::readableName($file, $request->input('titulo'));
                 $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/materiales', $fileName);
 
                 // Eliminar el archivo anterior solo cuando el nuevo ya quedó guardado
