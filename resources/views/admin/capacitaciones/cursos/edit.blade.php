@@ -546,11 +546,11 @@
                                             <div class="tab-pane active" id="archivo-tab">
                                                 <div class="form-group mt-3">
                                                     <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" id="archivo" name="archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp4,.m4v,.mov,.avi,.webm,.txt,.zip,.rar">
+                                                        <input type="file" class="custom-file-input" id="archivo" name="archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp4,.m4v,.mov,.avi,.webm,.wmv,.txt,.zip,.rar">
                                                         <label class="custom-file-label" for="archivo">Seleccionar archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
-                                                    <small class="form-text text-muted">Máximo 100MB. Formatos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, WEBP, MP4, M4V, MOV, AVI, WEBM, TXT, ZIP, RAR. <strong>Tipo "Documento": solo PDF.</strong></small>
+                                                    <small class="form-text text-muted">Máximo 100MB. Formatos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, WEBP, MP4, M4V, MOV, AVI, WEBM, WMV (se recomienda convertir a MP4), TXT, ZIP, RAR. <strong>Tipo "Documento": solo PDF.</strong></small>
                                                 </div>
                                             </div>
                                             <div class="tab-pane" id="url-tab">
@@ -711,7 +711,7 @@
                                             <div class="tab-pane active" id="edit-archivo-tab">
                                                 <div class="form-group mt-3">
                                                     <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" id="edit_archivo" name="archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp4,.m4v,.mov,.avi,.webm,.txt,.zip,.rar">
+                                                        <input type="file" class="custom-file-input" id="edit_archivo" name="archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp4,.m4v,.mov,.avi,.webm,.wmv,.txt,.zip,.rar">
                                                         <label class="custom-file-label" for="edit_archivo">Seleccionar nuevo archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
@@ -941,6 +941,30 @@
             if (this.contains(document.activeElement)) {
                 document.activeElement.blur();
             }
+        });
+
+        // Los navegadores no reproducen WMV: se recomienda convertirlo a MP4 antes de subirlo
+        $(document).on('change', '#archivo, #edit_archivo', function() {
+            const input = this;
+            const archivo = input.files && input.files[0];
+            if (!archivo || !/\.wmv$/i.test(archivo.name)) {
+                return;
+            }
+            Swal.fire({
+                icon: 'warning',
+                title: 'Video en formato WMV',
+                html: 'Los videos <strong>.wmv</strong> no se pueden reproducir en el navegador, por lo que los estudiantes no podrán verlos en el aula virtual.<br><br>' +
+                      'Te recomendamos convertirlo a <strong>MP4</strong> antes de subirlo, por ejemplo con ' +
+                      '<a href="https://handbrake.fr/" target="_blank" rel="noopener">HandBrake</a> (gratuito).',
+                showCancelButton: true,
+                confirmButtonText: 'Subir de todos modos',
+                cancelButtonText: 'Elegir otro archivo'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    $(input).val('');
+                    $(input).siblings('.custom-file-label').text(input.id === 'edit_archivo' ? 'Seleccionar nuevo archivo...' : 'Seleccionar archivo...');
+                }
+            });
         });
 
         $(document).ready(function() {

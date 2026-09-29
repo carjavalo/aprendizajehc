@@ -45,6 +45,7 @@ class CursoClassroomController extends Controller
         'mov'  => ['video/quicktime', 'video/mp4', 'application/octet-stream'],
         'avi'  => ['video/x-msvideo', 'video/avi', 'video/msvideo', 'application/octet-stream'],
         'webm' => ['video/webm', 'audio/webm'],
+        'wmv'  => ['video/x-ms-wmv', 'video/x-ms-asf', 'application/vnd.ms-asf', 'application/octet-stream'],
         'txt'  => ['text/plain'],
         'zip'  => ['application/zip', 'application/x-zip-compressed', 'application/octet-stream'],
         'rar'  => ['application/x-rar-compressed', 'application/vnd.rar', 'application/x-rar', 'application/octet-stream'],
