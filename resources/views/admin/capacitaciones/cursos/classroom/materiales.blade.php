@@ -141,7 +141,7 @@
                     <hr>
                     <small class="text-muted">
                         <i class="fas fa-exclamation-triangle"></i> 
-                        Tamaño máximo: 10MB por archivo
+                        Tamaño máximo: 100MB por archivo
                     </small>
                 </div>
             </div>
@@ -246,11 +246,11 @@
                                             <div class="tab-pane active" id="archivo-tab">
                                                 <div class="form-group mt-3">
                                                     <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" id="archivo" name="archivo">
+                                                        <input type="file" class="custom-file-input" id="archivo" name="archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp4,.m4v,.mov,.avi,.webm,.txt,.zip,.rar">
                                                         <label class="custom-file-label" for="archivo">Seleccionar archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
-                                                    <small class="form-text text-muted">Máximo 10MB. Formatos: PDF, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, MP4, AVI, MOV. <strong>Tipo "Documento": solo PDF.</strong></small>
+                                                    <small class="form-text text-muted">Máximo 100MB. Formatos: PDF, DOC, DOCX, PPT, PPTX, XLS, XLSX, JPG, PNG, GIF, WEBP, MP4, M4V, MOV, AVI, WEBM, TXT, ZIP, RAR. <strong>Tipo "Documento": solo PDF.</strong></small>
                                                 </div>
                                             </div>
                                             <div class="tab-pane" id="url-tab">
@@ -395,11 +395,11 @@
                                             <div class="tab-pane active" id="edit-archivo-tab">
                                                 <div class="form-group mt-3">
                                                     <div class="custom-file">
-                                                        <input type="file" class="custom-file-input" id="edit_archivo" name="archivo">
+                                                        <input type="file" class="custom-file-input" id="edit_archivo" name="archivo" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.webp,.mp4,.m4v,.mov,.avi,.webm,.txt,.zip,.rar">
                                                         <label class="custom-file-label" for="edit_archivo">Seleccionar nuevo archivo...</label>
                                                     </div>
                                                     <div class="invalid-feedback"></div>
-                                                    <small class="form-text text-muted">Deja vacío para mantener el archivo actual. Máximo 10MB.</small>
+                                                    <small class="form-text text-muted">Deja vacío para mantener el archivo actual. Máximo 100MB.</small>
                                                 </div>
                                             </div>
                                             <div class="tab-pane" id="edit-url-tab">
@@ -541,6 +541,51 @@
 </div>
 
 <script>
+    // Límite de tamaño de los archivos de material (debe coincidir con el backend).
+    // Se usa var/function porque esta vista puede recargarse dentro de una pestaña.
+    var MATERIAL_MAX_BYTES = 100 * 1024 * 1024;
+
+    // Devuelve un mensaje de error si el archivo supera el límite, o null
+    function validarTamanoMaterial(archivo) {
+        if (archivo && archivo.size > MATERIAL_MAX_BYTES) {
+            var mb = (archivo.size / 1024 / 1024).toFixed(1);
+            return 'El archivo pesa ' + mb + ' MB y el máximo permitido es 100 MB.';
+        }
+        return null;
+    }
+
+    // Muestra los errores de una petición fallida al guardar un material
+    function mostrarErrorMaterial($form, xhr, mensajeGenerico) {
+        var json = xhr.responseJSON || {};
+        if (xhr.status === 413) {
+            Swal.fire('Archivo demasiado grande', 'El archivo supera el tamaño máximo permitido (100 MB).', 'error');
+            return;
+        }
+        if (xhr.status === 422 && json.errors) {
+            var mensajes = [];
+            $.each(json.errors, function(field, messages) {
+                var input = $form.find('[name="' + field + '"]');
+                input.addClass('is-invalid');
+                input.closest('.form-group').find('.invalid-feedback').first().text(messages[0]).addClass('d-block');
+                mensajes.push(messages[0]);
+            });
+            Swal.fire('Error de Validación', mensajes.join('<br>'), 'error');
+            return;
+        }
+        Swal.fire('Error', json.message || mensajeGenerico + ' (Status: ' + xhr.status + ')', 'error');
+    }
+
+    // Evita el aviso "Blocked aria-hidden on an element because its descendant
+    // retained focus": se quita el foco del modal antes de que Bootstrap lo oculte.
+    if (!window.__materialModalBlurBound) {
+        window.__materialModalBlurBound = true;
+        $(document).on('hide.bs.modal', '.modal', function() {
+            if (this.contains(document.activeElement)) {
+                document.activeElement.blur();
+            }
+        });
+    }
+
     $(document).ready(function() {
         @if($esInstructor)
             // Inicializar custom file input (deshabilitado - no es necesario)
@@ -622,7 +667,19 @@
                     $('#btn-guardar-material').prop('disabled', false).html('<i class="fas fa-upload"></i> Subir Material');
                     return;
                 }
-                
+
+                const errorTamano = validarTamanoMaterial(archivo);
+                if (errorTamano) {
+                    Swal.fire('Archivo demasiado grande', errorTamano, 'error');
+                    $('#btn-guardar-material').prop('disabled', false).html('<i class="fas fa-upload"></i> Subir Material');
+                    return;
+                }
+
+                // Si no se eligió archivo, no enviar el campo vacío
+                if (!archivo || archivo.size === 0) {
+                    formData.delete('archivo');
+                }
+
                 // Si url_externa está vacía, eliminarla del FormData
                 if (!urlExterna || urlExterna.trim() === '') {
                     formData.delete('url_externa');
@@ -659,27 +716,7 @@
                         }
                     },
                     error: function(xhr) {
-                        console.log('Error response:', xhr);
-                        console.log('Status:', xhr.status);
-                        console.log('Response text:', xhr.responseText);
-                        
-                        if (xhr.status === 422) {
-                            // Errores de validación
-                            if (xhr.responseJSON && xhr.responseJSON.errors) {
-                                const errors = xhr.responseJSON.errors;
-                                $.each(errors, function(field, messages) {
-                                    const input = $('[name="' + field + '"]');
-                                    input.addClass('is-invalid');
-                                    input.siblings('.invalid-feedback').text(messages[0]);
-                                });
-                                
-                                Swal.fire('Error de Validación', 'Por favor, corrige los errores en el formulario', 'error');
-                            } else {
-                                Swal.fire('Error de Validación', 'Error 422: ' + (xhr.responseJSON?.message || xhr.responseText), 'error');
-                            }
-                        } else {
-                            Swal.fire('Error', 'Ocurrió un error al subir el material (Status: ' + xhr.status + ')', 'error');
-                        }
+                        mostrarErrorMaterial($('#subirMaterialForm'), xhr, 'Ocurrió un error al subir el material');
                     },
                     complete: function() {
                         // Rehabilitar botón de envío
@@ -747,7 +784,20 @@
                 // Crear FormData para manejar archivos
                 const formData = new FormData(this);
                 formData.append('_method', 'PUT');
-                
+
+                const archivo = formData.get('archivo');
+                const errorTamano = validarTamanoMaterial(archivo);
+                if (errorTamano) {
+                    Swal.fire('Archivo demasiado grande', errorTamano, 'error');
+                    $('#btn-actualizar-material').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cambios');
+                    return;
+                }
+
+                // Si no se eligió un archivo nuevo, no enviar el campo vacío
+                if (!archivo || archivo.size === 0) {
+                    formData.delete('archivo');
+                }
+
                 // Agregar prerequisite_id
                 const prerequisiteId = $('#edit_prerequisite_id').val();
                 if (prerequisiteId) {
@@ -784,21 +834,7 @@
                         }
                     },
                     error: function(xhr) {
-                        if (xhr.status === 422) {
-                            if (xhr.responseJSON && xhr.responseJSON.errors) {
-                                const errors = xhr.responseJSON.errors;
-                                $.each(errors, function(field, messages) {
-                                    const input = $('#editarMaterialForm [name="' + field + '"]');
-                                    input.addClass('is-invalid');
-                                    input.siblings('.invalid-feedback').text(messages[0]);
-                                });
-                                Swal.fire('Error de Validación', 'Por favor, corrige los errores en el formulario', 'error');
-                            } else {
-                                Swal.fire('Error', xhr.responseJSON?.message || 'Error de validación', 'error');
-                            }
-                        } else {
-                            Swal.fire('Error', 'Ocurrió un error al actualizar el material', 'error');
-                        }
+                        mostrarErrorMaterial($('#editarMaterialForm'), xhr, 'Ocurrió un error al actualizar el material');
                     },
                     complete: function() {
                         $('#btn-actualizar-material').prop('disabled', false).html('<i class="fas fa-save"></i> Guardar Cambios');

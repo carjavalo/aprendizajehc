@@ -18,6 +18,82 @@ use Illuminate\Support\Str;
 class CursoClassroomController extends Controller
 {
     /**
+     * Tamaño máximo (KB) de los archivos de material del curso: 100 MB.
+     */
+    private const MATERIAL_MAX_KB = 102400;
+
+    /**
+     * Extensiones permitidas para materiales y los MIME aceptados para cada una.
+     * Un mismo formato puede detectarse con distintos MIME según el equipo que lo
+     * generó (p. ej. un MP4 grabado en celular se detecta como video/quicktime).
+     */
+    private const MATERIAL_MIMES = [
+        'pdf'  => ['application/pdf'],
+        'doc'  => ['application/msword', 'application/vnd.ms-office', 'application/octet-stream'],
+        'docx' => ['application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'application/zip', 'application/octet-stream'],
+        'ppt'  => ['application/vnd.ms-powerpoint', 'application/vnd.ms-office', 'application/octet-stream'],
+        'pptx' => ['application/vnd.openxmlformats-officedocument.presentationml.presentation', 'application/zip', 'application/octet-stream'],
+        'xls'  => ['application/vnd.ms-excel', 'application/vnd.ms-office', 'application/octet-stream'],
+        'xlsx' => ['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/zip', 'application/octet-stream'],
+        'jpg'  => ['image/jpeg', 'image/pjpeg'],
+        'jpeg' => ['image/jpeg', 'image/pjpeg'],
+        'png'  => ['image/png'],
+        'gif'  => ['image/gif'],
+        'webp' => ['image/webp'],
+        'mp4'  => ['video/mp4', 'video/quicktime', 'video/x-m4v', 'application/mp4', 'application/octet-stream'],
+        'm4v'  => ['video/mp4', 'video/x-m4v', 'video/quicktime', 'application/octet-stream'],
+        'mov'  => ['video/quicktime', 'video/mp4', 'application/octet-stream'],
+        'avi'  => ['video/x-msvideo', 'video/avi', 'video/msvideo', 'application/octet-stream'],
+        'webm' => ['video/webm', 'audio/webm'],
+        'txt'  => ['text/plain'],
+        'zip'  => ['application/zip', 'application/x-zip-compressed', 'application/octet-stream'],
+        'rar'  => ['application/x-rar-compressed', 'application/vnd.rar', 'application/x-rar', 'application/octet-stream'],
+    ];
+
+    /**
+     * Mensajes de validación del archivo de material.
+     */
+    private function mensajesArchivoMaterial(): array
+    {
+        return [
+            'archivo.required_without' => 'Debes seleccionar un archivo o proporcionar una URL externa.',
+            'archivo.file' => 'El archivo no se recibió correctamente.',
+            'archivo.uploaded' => 'El archivo no se pudo subir. Verifica que no supere 100 MB.',
+            'archivo.max' => 'El archivo no puede superar 100 MB.',
+        ];
+    }
+
+    /**
+     * Verifica que la extensión del archivo esté permitida y que su contenido
+     * corresponda a esa extensión. Devuelve el mensaje de error o null si es válido.
+     */
+    private function errorFormatoMaterial(\Illuminate\Http\UploadedFile $file, ?string $tipo): ?string
+    {
+        $extension = strtolower($file->getClientOriginalExtension());
+
+        if ($tipo === 'documento' && $extension !== 'pdf') {
+            return 'Para materiales de tipo "Documento" solo se permiten archivos PDF.';
+        }
+
+        if (!isset(self::MATERIAL_MIMES[$extension])) {
+            return 'Formato no permitido. Formatos aceptados: '
+                . strtoupper(implode(', ', array_keys(self::MATERIAL_MIMES))) . '.';
+        }
+
+        $mimeType = strtolower((string) $file->getMimeType());
+        if (!in_array($mimeType, self::MATERIAL_MIMES[$extension], true)) {
+            \Log::warning('Material rechazado por MIME', [
+                'archivo' => $file->getClientOriginalName(),
+                'extension' => $extension,
+                'mime' => $mimeType,
+            ]);
+            return "El contenido del archivo no corresponde a un .{$extension} válido.";
+        }
+
+        return null;
+    }
+
+    /**
      * Mostrar la vista principal del classroom
      */
     public function index(Curso $curso)
@@ -123,21 +199,21 @@ class CursoClassroomController extends Controller
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'tipo' => 'required|in:archivo,video,imagen,documento',
-            'archivo' => 'required_without:url_externa|file|max:10240|mimes:pdf,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,mp4,avi,mov,txt,zip,rar',
+            'archivo' => 'required_without:url_externa|file|max:' . self::MATERIAL_MAX_KB,
             'url_externa' => 'nullable|url', // Cambiado a nullable en lugar de required_without
             'orden' => 'nullable|integer|min:0',
             'porcentaje_curso' => 'nullable|numeric|min:0|max:100',
             'nota_minima_aprobacion' => 'nullable|numeric|min:0|max:5',
-        ]);
+        ], $this->mensajesArchivoMaterial());
 
-        // Restricción adicional: cuando el material es de tipo "documento",
-        // solo se aceptan PDF para que pueda ser visualizado dentro del aula
-        // virtual sin permitir descarga del archivo original.
+        // Formato permitido y contenido acorde a la extensión. Los materiales de
+        // tipo "documento" solo aceptan PDF para que puedan visualizarse dentro
+        // del aula virtual sin permitir descarga del archivo original.
         $validator->after(function ($v) use ($request) {
-            if ($request->input('tipo') === 'documento' && $request->hasFile('archivo')) {
-                $ext = strtolower($request->file('archivo')->getClientOriginalExtension());
-                if ($ext !== 'pdf') {
-                    $v->errors()->add('archivo', 'Para materiales de tipo "Documento" solo se permiten archivos PDF.');
+            $file = $request->file('archivo');
+            if ($file && $file->isValid() && !$v->errors()->has('archivo')) {
+                if ($error = $this->errorFormatoMaterial($file, $request->input('tipo'))) {
+                    $v->errors()->add('archivo', $error);
                 }
             }
         });
@@ -169,39 +245,8 @@ class CursoClassroomController extends Controller
             // Manejar archivo subido
             if ($request->hasFile('archivo')) {
                 $file = $request->file('archivo');
-                
-                // Validaciones adicionales de seguridad
-                $allowedMimes = [
-                    'pdf' => 'application/pdf',
-                    'doc' => 'application/msword',
-                    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'ppt' => 'application/vnd.ms-powerpoint',
-                    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                    'xls' => 'application/vnd.ms-excel',
-                    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'jpg' => 'image/jpeg',
-                    'jpeg' => 'image/jpeg',
-                    'png' => 'image/png',
-                    'gif' => 'image/gif',
-                    'mp4' => 'video/mp4',
-                    'avi' => 'video/x-msvideo',
-                    'mov' => 'video/quicktime',
-                    'txt' => 'text/plain',
-                    'zip' => 'application/zip',
-                    'rar' => 'application/x-rar-compressed'
-                ];
-                
                 $extension = strtolower($file->getClientOriginalExtension());
-                $mimeType = $file->getMimeType();
-                
-                // Verificar que la extensión coincida con el MIME type
-                if (!isset($allowedMimes[$extension]) || $allowedMimes[$extension] !== $mimeType) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Tipo de archivo no válido o sospechoso'
-                    ], 422);
-                }
-                
+
                 // Generar nombre único para evitar conflictos
                 $fileName = time() . '_' . Str::random(10) . '.' . $extension;
                 $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/materiales', $fileName);
@@ -343,17 +388,17 @@ class CursoClassroomController extends Controller
             'titulo' => 'required|string|max:200',
             'descripcion' => 'nullable|string',
             'tipo' => 'required|in:archivo,video,imagen,documento',
-            'archivo' => 'nullable|file|max:10240|mimes:pdf,ppt,pptx,xls,xlsx,jpg,jpeg,png,gif,mp4,avi,mov,txt,zip,rar',
+            'archivo' => 'nullable|file|max:' . self::MATERIAL_MAX_KB,
             'orden' => 'nullable|integer|min:0',
             'porcentaje_curso' => 'nullable|numeric|min:0|max:100',
-        ]);
+        ], $this->mensajesArchivoMaterial());
 
-        // Restricción adicional para tipo documento: solo PDF.
+        // Formato permitido y contenido acorde a la extensión (tipo documento: solo PDF).
         $validator->after(function ($v) use ($request) {
-            if ($request->input('tipo') === 'documento' && $request->hasFile('archivo')) {
-                $ext = strtolower($request->file('archivo')->getClientOriginalExtension());
-                if ($ext !== 'pdf') {
-                    $v->errors()->add('archivo', 'Para materiales de tipo "Documento" solo se permiten archivos PDF.');
+            $file = $request->file('archivo');
+            if ($file && $file->isValid() && !$v->errors()->has('archivo')) {
+                if ($error = $this->errorFormatoMaterial($file, $request->input('tipo'))) {
+                    $v->errors()->add('archivo', $error);
                 }
             }
         });
@@ -399,46 +444,15 @@ class CursoClassroomController extends Controller
             // Manejar nuevo archivo si se subió
             if ($request->hasFile('archivo')) {
                 $file = $request->file('archivo');
-                
-                // Validaciones adicionales de seguridad
-                $allowedMimes = [
-                    'pdf' => 'application/pdf',
-                    'doc' => 'application/msword',
-                    'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-                    'ppt' => 'application/vnd.ms-powerpoint',
-                    'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-                    'xls' => 'application/vnd.ms-excel',
-                    'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                    'jpg' => 'image/jpeg',
-                    'jpeg' => 'image/jpeg',
-                    'png' => 'image/png',
-                    'gif' => 'image/gif',
-                    'mp4' => 'video/mp4',
-                    'avi' => 'video/x-msvideo',
-                    'mov' => 'video/quicktime',
-                    'txt' => 'text/plain',
-                    'zip' => 'application/zip',
-                    'rar' => 'application/x-rar-compressed'
-                ];
-                
                 $extension = strtolower($file->getClientOriginalExtension());
-                $mimeType = $file->getMimeType();
-                
-                // Verificar que la extensión coincida con el MIME type
-                if (!isset($allowedMimes[$extension]) || $allowedMimes[$extension] !== $mimeType) {
-                    return response()->json([
-                        'success' => false,
-                        'message' => 'Tipo de archivo no válido o sospechoso'
-                    ], 422);
-                }
-                
-                // Eliminar archivo anterior si existe
-                MediaStorage::delete($material->archivo_path);
 
                 // Generar nombre único para evitar conflictos
                 $fileName = time() . '_' . Str::random(10) . '.' . $extension;
                 $path = MediaStorage::store($file, 'cursos/' . $curso->id . '/materiales', $fileName);
-                
+
+                // Eliminar el archivo anterior solo cuando el nuevo ya quedó guardado
+                MediaStorage::delete($material->archivo_path);
+
                 $material->archivo_path = $path;
                 $material->archivo_nombre = $file->getClientOriginalName();
                 $material->archivo_extension = $extension;
